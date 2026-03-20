@@ -139,6 +139,9 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
             <a href="#reviews" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
               Reviews
             </a>
+            <a href="/products" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Products
+            </a>
               <Button onClick={onStart} size="sm" className="rounded-full">
                 Try Scan <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Button>
@@ -236,9 +239,11 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
                   <Image
                     src={'/assets/hero-app-mockup.jpg'}
                     alt="MizuCaire AI skin analysis app"
-                    className="w-85 rounded-[2.5rem] shadow-elevated"
+                    className="w-85 h-auto rounded-[2.5rem] shadow-elevated"
                     width={340}
                     height={680}
+                    loading="eager"
+                    priority
                   />
 
                   {/* Floating metric cards */}
