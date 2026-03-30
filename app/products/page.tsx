@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, X, Package, ArrowLeft, Filter, ShoppingBag } from "lucide-react"
+import { Search, X, Package, ArrowLeft, Filter, ShoppingBag, Lightbulb } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useI18n } from "@/lib/i18n"
@@ -24,6 +24,7 @@ interface Product {
   id: number
   name: string
   description: string | null
+  usage_tip: string | null
   price: number
   brand: string
   type: string
@@ -237,53 +238,64 @@ export default function ProductsPage() {
           >
             {filteredProducts.map((product, i) => (
               <motion.div key={product.id} custom={i} variants={fadeUp}>
-                <Card className="group overflow-hidden border-border/50 hover:shadow-elevated transition-all duration-300 h-full flex flex-col">
-                  {/* Product Image */}
-                  <div className="relative h-48 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden">
-                    {product.image_url ? (
-                      <Image 
-                        src={product.image_url} 
-                        alt={product.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-muted-foreground/50">
-                        <ShoppingBag className="h-12 w-12 mb-2" />
-                        <span className="text-xs">{product.type}</span>
-                      </div>
-                    )}
-                    {/* Type Badge */}
-                    <div className="absolute top-3 left-3">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${typeColors[product.type] || 'bg-gray-500/10 text-gray-600'}`}>
-                        {product.type}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Product Info */}
-                  <CardContent className="p-4 flex-1 flex flex-col">
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-primary mb-1">{product.brand}</p>
-                      <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                        {product.name}
-                      </h3>
-                      {product.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                          {product.description}
-                        </p>
+                <Link href={`/products/${product.id}`} className="block h-full">
+                  <Card className="group overflow-hidden border-border/50 hover:shadow-elevated hover:border-primary/30 transition-all duration-300 h-full flex flex-col cursor-pointer">
+                    {/* Product Image */}
+                    <div className="relative h-48 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden">
+                      {product.image_url ? (
+                        <Image 
+                          src={product.image_url} 
+                          alt={product.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-muted-foreground/50">
+                          <ShoppingBag className="h-12 w-12 mb-2" />
+                          <span className="text-xs">{product.type}</span>
+                        </div>
                       )}
+                      {/* Type Badge */}
+                      <div className="absolute top-3 left-3">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${typeColors[product.type] || 'bg-gray-500/10 text-gray-600'}`}>
+                          {product.type}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
-                      <span className="text-lg font-bold text-foreground">
-                        ${product.price}
-                      </span>
-                      <Button size="sm" variant="secondary" className="rounded-full">
-                        {t('products.addToRoutine')}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    
+                    {/* Product Info */}
+                    <CardContent className="p-4 flex-1 flex flex-col">
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-primary mb-1">{product.brand}</p>
+                        <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                          {product.name}
+                        </h3>
+                        {product.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                            {product.description}
+                          </p>
+                        )}
+                        {/* Usage Tip */}
+                        {product.usage_tip && (
+                          <div className="flex items-start gap-2 rounded-lg bg-primary/5 border border-primary/15 px-3 py-2 mb-3">
+                            <Lightbulb className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                            <p className="text-xs text-foreground line-clamp-2 leading-relaxed">
+                              {product.usage_tip}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
+                        <span className="text-lg font-bold text-foreground">
+                          ${product.price}
+                        </span>
+                        <Button size="sm" variant="secondary" className="rounded-full" onClick={(e) => e.preventDefault()}>
+                          {t('products.addToRoutine')}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               </motion.div>
             ))}
           </motion.div>

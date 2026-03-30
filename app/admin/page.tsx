@@ -46,11 +46,13 @@ import { Plus, Pencil, Trash2, Package, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { useI18n } from "@/lib/i18n"
 
 interface Product {
   id: number
   name: string
   description: string | null
+  usage_tip: string | null
   price: number
   brand: string
   type: string
@@ -75,6 +77,7 @@ const productTypes = [
 ]
 
 export default function AdminPage() {
+  const { t } = useI18n()
   const { data: products, error, isLoading } = useSWR<Product[]>('/api/products', fetcher)
   const { data: brands } = useSWR<string[]>('/api/products/brands', fetcher)
   
@@ -83,6 +86,7 @@ export default function AdminPage() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    usage_tip: "",
     price: "",
     brand: "",
     type: "",
@@ -93,6 +97,7 @@ export default function AdminPage() {
     setFormData({
       name: "",
       description: "",
+      usage_tip: "",
       price: "",
       brand: "",
       type: "",
@@ -106,6 +111,7 @@ export default function AdminPage() {
     setFormData({
       name: product.name,
       description: product.description || "",
+      usage_tip: product.usage_tip || "",
       price: product.price.toString(),
       brand: product.brand,
       type: product.type,
@@ -120,6 +126,7 @@ export default function AdminPage() {
     const productData = {
       name: formData.name,
       description: formData.description || null,
+      usage_tip: formData.usage_tip || null,
       price: parseFloat(formData.price),
       brand: formData.brand,
       type: formData.type,
@@ -173,127 +180,139 @@ export default function AdminPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-<div>
-            <h1 className="text-3xl font-bold text-foreground font-display">Product Admin</h1>
-            <p className="text-muted-foreground">Manage your skincare products</p>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground font-display">{t('admin.title')}</h1>
+              <p className="text-muted-foreground">Manage your skincare products</p>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-4">
-          <LanguageSwitcher variant="select" showNativeName />
-        </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open)
-            if (!open) resetForm()
-          }}>
-            <DialogTrigger asChild>
-              <Button className="rounded-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingProduct ? 'Edit Product' : 'Add New Product'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Product Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Hydrating Facial Mist"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Product description..."
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher variant="select" showNativeName />
+
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open)
+              if (!open) resetForm()
+            }}>
+              <DialogTrigger asChild>
+                <Button className="rounded-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('admin.addProduct')}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingProduct ? t('admin.editProduct') : t('admin.addProduct')}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price ($)</Label>
+                    <Label htmlFor="name">Product Name</Label>
                     <Input
-                      id="price"
-                      type="number"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="29.99"
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="e.g., Hydrating Facial Mist"
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="brand">Brand</Label>
-                    <Input
-                      id="brand"
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      placeholder="e.g., MizuCaire"
-                      required
-                      list="brands"
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Product description..."
+                      rows={3}
                     />
-                    <datalist id="brands">
-                      {brands?.map(brand => (
-                        <option key={brand} value={brand} />
-                      ))}
-                    </datalist>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="type">Product Type</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(value) => setFormData({ ...formData, type: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {productTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="image_url">Image URL (optional)</Label>
-                  <Input
-                    id="image_url"
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder="https://..."
-                  />
-                </div>
-                
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button type="submit">
-                    {editingProduct ? 'Save Changes' : 'Add Product'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="usage_tip">Usage Tip</Label>
+                    <Textarea
+                      id="usage_tip"
+                      value={formData.usage_tip}
+                      onChange={(e) => setFormData({ ...formData, usage_tip: e.target.value })}
+                      placeholder="e.g., For oily skin, stick to the skin. Apply a pea-sized amount..."
+                      rows={3}
+                    />
+                    <p className="text-xs text-muted-foreground">Short how-to tip shown on the product card and detail page.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price ($)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        placeholder="29.99"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="brand">Brand</Label>
+                      <Input
+                        id="brand"
+                        value={formData.brand}
+                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        placeholder="e.g., MizuCaire"
+                        required
+                        list="brands"
+                      />
+                      <datalist id="brands">
+                        {brands?.map(brand => (
+                          <option key={brand} value={brand} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Product Type</Label>
+                    <Select
+                      value={formData.type}
+                      onValueChange={(value) => setFormData({ ...formData, type: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {productTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="image_url">Image URL (optional)</Label>
+                    <Input
+                      id="image_url"
+                      type="url"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button type="button" variant="outline">{t('common.cancel')}</Button>
+                    </DialogClose>
+                    <Button type="submit">
+                      {editingProduct ? t('common.save') : t('admin.addProduct')}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -301,7 +320,7 @@ export default function AdminPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Products
+                {t('admin.totalProducts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -311,7 +330,7 @@ export default function AdminPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Brands
+                {t('admin.totalBrands')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -321,7 +340,7 @@ export default function AdminPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Avg. Price
+                {t('admin.avgPrice')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -344,9 +363,9 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading products...</div>
+              <div className="text-center py-8 text-muted-foreground">{t('common.loading')}</div>
             ) : error ? (
-              <div className="text-center py-8 text-destructive">Error loading products</div>
+              <div className="text-center py-8 text-destructive">{t('common.error')}</div>
             ) : products && products.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
@@ -355,6 +374,7 @@ export default function AdminPage() {
                       <TableHead>Name</TableHead>
                       <TableHead>Brand</TableHead>
                       <TableHead>Type</TableHead>
+                      <TableHead>Usage Tip</TableHead>
                       <TableHead className="text-right">Price</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -378,6 +398,15 @@ export default function AdminPage() {
                             {product.type}
                           </span>
                         </TableCell>
+                        <TableCell className="max-w-[200px]">
+                          {product.usage_tip ? (
+                            <span className="text-sm text-muted-foreground line-clamp-2">
+                              {product.usage_tip}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/50 italic">No tip set</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right font-medium">
                           ${product.price}
                         </TableCell>
@@ -400,7 +429,7 @@ export default function AdminPage() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Product</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete "{product.name}"? This action cannot be undone.
+                                    {t('admin.deleteConfirm', { name: product.name })}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
