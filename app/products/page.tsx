@@ -239,7 +239,7 @@ export default function ProductsPage() {
             {filteredProducts.map((product, i) => (
               <motion.div key={product.id} custom={i} variants={fadeUp}>
                 <Link href={`/products/${product.id}`} className="block h-full">
-                  <Card className="group overflow-hidden border-border/50 hover:shadow-elevated hover:border-primary/30 transition-all duration-300 h-full flex flex-col cursor-pointer">
+                  <Card className="p-0 group overflow-hidden border-border/50 hover:shadow-elevated hover:border-primary/30 transition-all duration-300 h-full flex flex-col cursor-pointer">
                     {/* Product Image */}
                     <div className="relative h-60 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden">
                       {product.image_url ? (
