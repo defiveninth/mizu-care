@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
         }),
       }
     )
+    console.log(`SYSTEM: ${system}\n\nUSER: ${message}`)
 
     const data = await res.json()
 

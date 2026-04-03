@@ -35,23 +35,11 @@ function ProductCard({ product }: { product: Product }) {
       rel="noopener noreferrer"
       className="product-card"
     >
-      <div className="product-img">
-        {product.image ? (
-          <img src={product.image} alt={product.name} />
-        ) : (
-          <div className="product-img-placeholder">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <rect x="2" y="3" width="20" height="14" rx="2" />
-              <path d="M8 21h8M12 17v4" />
-            </svg>
-          </div>
-        )}
-      </div>
       <div className="product-info">
         <span className="product-name">{product.name}</span>
         {product.category && <span className="product-category">{product.category}</span>}
         {product.price != null && (
-          <span className="product-price">${Number(product.price).toFixed(2)}</span>
+          <span className="product-price">₸{Number(product.price).toFixed(2)}</span>
         )}
         {product.description && (
           <span className="product-desc">{product.description.slice(0, 72)}{product.description.length > 72 ? "…" : ""}</span>
@@ -122,7 +110,7 @@ function AiChatPage() {
     const productContext =
       products.length > 0
         ? `\n\nAvailable products:\n${products
-            .map((p) => `- ${p.name} (id:${p.id}, price:$${p.price}${p.category ? ", category:" + p.category : ""}${p.description ? ", desc:" + p.description.slice(0, 80) : ""})`)
+            .map((p) => `- ${p.name} (id:${p.id}, price:₸${p.price}${p.category ? ", category:" + p.category : ""}${p.description ? ", desc:" + p.description.slice(0, 80) : ""})`)
             .join("\n")}`
         : "";
 
