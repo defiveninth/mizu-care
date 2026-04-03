@@ -30,7 +30,7 @@ If user asks general questions not related to products, just answer normally wit
 function ProductCard({ product }: { product: Product }) {
   return (
     <a
-      href={`/api/products/${product.id}`}
+      href={`/products/${product.id}`}
       target="_blank"
       rel="noopener noreferrer"
       className="product-card"
