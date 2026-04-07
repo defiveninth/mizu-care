@@ -69,12 +69,17 @@ const productTypes = [
   "Serum",
   "Cleanser",
   "Toner",
-  "Moisturizer",
   "Mask",
   "Oil",
   "Sunscreen",
-  "Exfoliant"
-]
+  "Enzyme PCT",
+  "Toner Pads",
+  "Spot Treatments",
+  "Eye Care",
+  "Hydrophilic Products",
+  "Dietary Supplements",
+  "SPF"
+  ]
 
 export default function AdminPage() {
   const { t } = useI18n()
