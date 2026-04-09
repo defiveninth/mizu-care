@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import useSWR from "swr"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useI18n } from "@/lib/i18n"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { addToBasket, readBasket } from "@/lib/basket"
 
 interface Product {
   id: number
@@ -62,10 +63,22 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedBrand, setSelectedBrand] = useState<string>("")
   const [selectedType, setSelectedType] = useState<string>("")
+  const [basketIds, setBasketIds] = useState<Set<number>>(() => new Set())
   
   const { data: products, isLoading } = useSWR<Product[]>('/api/products', fetcher)
   const { data: brands } = useSWR<string[]>('/api/products/brands', fetcher)
   const { data: types } = useSWR<string[]>('/api/products/types', fetcher)
+
+  useEffect(() => {
+    const refresh = () => {
+      const ids = new Set(readBasket().map((item) => item.id))
+      setBasketIds(ids)
+    }
+
+    refresh()
+    window.addEventListener("storage", refresh)
+    return () => window.removeEventListener("storage", refresh)
+  }, [])
 
   const filteredProducts = useMemo(() => {
     if (!products) return []
@@ -295,8 +308,25 @@ export default function ProductsPage() {
                         <span className="text-lg font-bold text-foreground">
                           {Number(product.price).toLocaleString('ru-KZ')} ₸
                         </span>
-                        <Button size="sm" variant="secondary" className="rounded-full" onClick={(e) => e.preventDefault()}>
-                          {t('products.addToRoutine')}
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="rounded-full"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            const next = addToBasket({
+                              id: product.id,
+                              name: product.name,
+                              price: Number(product.price),
+                              brand: product.brand,
+                              type: product.type,
+                              image_url: product.image_url,
+                            })
+                            setBasketIds(new Set(next.map((item) => item.id)))
+                          }}
+                        >
+                          {basketIds.has(product.id) ? "Added" : t('products.addToRoutine')}
                         </Button>
                       </div>
                     </CardContent>
