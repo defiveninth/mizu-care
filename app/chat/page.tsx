@@ -224,6 +224,34 @@ function AiChatPage() {
           flex-shrink: 0;
         }
 
+        .back-home {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          text-decoration: none;
+          color: var(--muted);
+          font-size: 0.82rem;
+          font-weight: 500;
+          padding: 8px 12px;
+          margin-right: 4px;
+          margin-left: -4px;
+          border-radius: 10px;
+          border: 1px solid transparent;
+          transition: color 0.15s, background 0.15s, border-color 0.15s;
+          flex-shrink: 0;
+          font-family: 'DM Sans', sans-serif;
+        }
+
+        .back-home:hover {
+          color: var(--accent);
+          background: var(--accent-light);
+          border-color: var(--border);
+        }
+
+        .back-home svg {
+          flex-shrink: 0;
+        }
+
         .chat-header-icon {
           width: 38px; height: 38px;
           background: var(--accent);
@@ -508,6 +536,12 @@ function AiChatPage() {
 
       <div className="chat-root">
         <header className="chat-header">
+          <Link href="/" className="back-home" aria-label="Back to home">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Home
+          </Link>
           <Link href="/" className="">
             <Image alt='' src={'/icon-black.png'} height={40} width={40} />
           </Link>
