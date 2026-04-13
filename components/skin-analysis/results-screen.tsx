@@ -1,7 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import type { SkinData, RecommendedProduct } from "@/app/page"
 import {
   Droplets,
@@ -13,6 +17,9 @@ import {
   Zap,
   Layers,
   ShoppingBag,
+  Star,
+  Send,
+  CheckCircle2,
 } from "lucide-react"
 import { useI18n } from '@/lib/i18n'
 import Image from "next/image"
@@ -248,6 +255,11 @@ export default function ResultsScreen({ skinData, onRestart }: ResultsScreenProp
         </div>
       </div>
 
+      {/* Review Form */}
+      <div className="mt-8 px-6">
+        <ReviewForm />
+      </div>
+
       {/* Restart Button */}
       <div className="mt-8 px-6">
         <Button
@@ -357,6 +369,131 @@ function RoutineCard({ title, steps }: { title: string; steps: string[] }) {
           </li>
         ))}
       </ol>
+    </Card>
+  )
+}
+
+function ReviewForm() {
+  const { t } = useI18n()
+  const [name, setName] = useState("")
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [hoveredRating, setHoveredRating] = useState(0)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name.trim() || !comment.trim()) return
+
+    setIsSubmitting(true)
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          author_name: name.trim(),
+          rating,
+          comment: comment.trim(),
+        }),
+      })
+
+      if (res.ok) {
+        setIsSubmitted(true)
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isSubmitted) {
+    return (
+      <Card className="rounded-2xl p-6 bg-primary/5 border-primary/20">
+        <div className="flex flex-col items-center text-center gap-3">
+          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <CheckCircle2 className="h-6 w-6 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">
+            {t('review.thankYou')}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {t('review.submitted')}
+          </p>
+        </div>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="rounded-2xl p-6">
+      <h3 className="text-lg font-semibold text-foreground mb-4">
+        {t('review.title')}
+      </h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">{t('review.name')}</Label>
+          <Input
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('review.namePlaceholder')}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>{t('review.rating')}</Label>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setRating(star)}
+                onMouseEnter={() => setHoveredRating(star)}
+                onMouseLeave={() => setHoveredRating(0)}
+                className="p-1 transition-transform hover:scale-110"
+              >
+                <Star
+                  className={`h-6 w-6 transition-colors ${
+                    star <= (hoveredRating || rating)
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-muted-foreground"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="comment">{t('review.comment')}</Label>
+          <Textarea
+            id="comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder={t('review.commentPlaceholder')}
+            rows={3}
+            required
+          />
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full rounded-full"
+          disabled={isSubmitting || !name.trim() || !comment.trim()}
+        >
+          {isSubmitting ? (
+            t('review.submitting')
+          ) : (
+            <>
+              <Send className="mr-2 h-4 w-4" />
+              {t('review.submit')}
+            </>
+          )}
+        </Button>
+      </form>
     </Card>
   )
 }

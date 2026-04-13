@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
+import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
@@ -21,6 +22,24 @@ import {
 import Image from 'next/image'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useI18n } from '@/lib/i18n'
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
+
+interface Stats {
+  total_scans: number
+  total_ratings: number
+  ratings_sum: number
+  accuracy_rate: number
+  average_rating: number
+}
+
+interface Review {
+  id: number
+  author_name: string
+  rating: number
+  comment: string
+  created_at: string
+}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -102,6 +121,15 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] })
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 150])
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
+
+  // Fetch real stats and reviews from database
+  const { data: stats } = useSWR<Stats>('/api/stats', fetcher)
+  const { data: reviews } = useSWR<Review[]>('/api/reviews', fetcher)
+
+  // Calculate display values from real stats
+  const displayScans = stats?.total_scans ? Math.floor(stats.total_scans / 1000) : 50
+  const displayRating = stats?.average_rating ? parseFloat(stats.average_rating.toString()) : 4.8
+  const displayAccuracy = stats?.accuracy_rate || 98
 
   const testimonials = [
     {
@@ -208,21 +236,21 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
                 <motion.div variants={fadeUp} custom={4} className="flex items-center gap-8 pt-4">
                   <div>
                     <p className="text-2xl font-bold text-foreground font-display">
-                      <AnimatedCounter value={50} suffix="K+" />
+                      <AnimatedCounter value={displayScans} suffix="K+" />
                     </p>
                     <p className="text-xs text-muted-foreground">{t('home.stats.scans')}</p>
                   </div>
                   <div className="h-8 w-px bg-border" />
                   <div>
                     <p className="text-2xl font-bold text-foreground font-display">
-                      <AnimatedCounter value={4} suffix=".8★" />
+                      <AnimatedCounter value={Math.floor(displayRating)} suffix={`.${Math.round((displayRating % 1) * 10)}★`} />
                     </p>
                     <p className="text-xs text-muted-foreground">{t('home.stats.rating')}</p>
                   </div>
                   <div className="h-8 w-px bg-border" />
                   <div>
                     <p className="text-2xl font-bold text-foreground font-display">
-                      <AnimatedCounter value={98} suffix="%" />
+                      <AnimatedCounter value={displayAccuracy} suffix="%" />
                     </p>
                     <p className="text-xs text-muted-foreground">{t('home.stats.accuracy')}</p>
                   </div>
@@ -416,34 +444,48 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {testimonials.map((testimonial, i) => (
-              <motion.div
-                key={testimonial.name}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-                variants={fadeUp}
-              >
-                <Card className="p-6 border-none shadow-card bg-background hover:shadow-elevated transition-all duration-300 h-full flex flex-col">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(5)].map((_, si) => (
-                      <div key={si} className="w-4 h-4 rounded-full bg-primary/80" />
-                    ))}
-                  </div>
-                  <p className="text-foreground leading-relaxed flex-1 italic">&quot;{testimonial.text}&quot;</p>
-                  <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
-                    <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
-                      {testimonial.avatar}
+            {/* Show real reviews from database, fallback to mock testimonials */}
+            {(reviews && reviews.length > 0 ? reviews.slice(0, 3) : testimonials).map((item, i) => {
+              const isReview = 'author_name' in item
+              const name = isReview ? (item as Review).author_name : (item as typeof testimonials[0]).name
+              const text = isReview ? (item as Review).comment : (item as typeof testimonials[0]).text
+              const rating = isReview ? (item as Review).rating : 5
+              const avatar = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+              
+              return (
+                <motion.div
+                  key={isReview ? (item as Review).id : name}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  custom={i}
+                  variants={fadeUp}
+                >
+                  <Card className="p-6 border-none shadow-card bg-background hover:shadow-elevated transition-all duration-300 h-full flex flex-col">
+                    <div className="flex items-center gap-1 mb-4">
+                      {[...Array(5)].map((_, si) => (
+                        <div 
+                          key={si} 
+                          className={`w-4 h-4 rounded-full ${si < rating ? 'bg-primary/80' : 'bg-muted'}`} 
+                        />
+                      ))}
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{testimonial.name}</p>
-                      <p className="text-xs text-muted-foreground">{testimonial.skinType} Skin</p>
+                    <p className="text-foreground leading-relaxed flex-1 italic">&quot;{text}&quot;</p>
+                    <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
+                      <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
+                        {avatar}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{name}</p>
+                        {!isReview && (
+                          <p className="text-xs text-muted-foreground">{(item as typeof testimonials[0]).skinType} Skin</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+                  </Card>
+                </motion.div>
+              )
+            })}
           </div>
         </div>
       </section>

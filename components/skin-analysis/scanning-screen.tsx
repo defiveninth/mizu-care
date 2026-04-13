@@ -70,6 +70,9 @@ export default function ScanningScreen({ image, surveyAnswers, onComplete }: Sca
         const result = await response.json()
         setAnalysisResult(result)
         setAnalysisComplete(true)
+        
+        // Increment scan count in stats
+        fetch('/api/stats', { method: 'POST' }).catch(console.error)
       } catch (err) {
         console.error('Skin analysis error:', err)
         setError('Analysis encountered an issue, using survey-based results')

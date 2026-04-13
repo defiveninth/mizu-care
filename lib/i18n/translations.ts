@@ -217,6 +217,18 @@ export type TranslationKeys = {
   'admin.avgPrice': string
   'admin.view.list': string
   'admin.view.cards': string
+
+  // Review form
+  'review.title': string
+  'review.name': string
+  'review.namePlaceholder': string
+  'review.rating': string
+  'review.comment': string
+  'review.commentPlaceholder': string
+  'review.submit': string
+  'review.submitting': string
+  'review.thankYou': string
+  'review.submitted': string
 }
 
 export const translations: Record<Locale, TranslationKeys> = {
@@ -425,6 +437,17 @@ export const translations: Record<Locale, TranslationKeys> = {
     'admin.avgPrice': 'Avg. Price',
     'admin.view.list': 'List',
     'admin.view.cards': 'Cards',
+
+    'review.title': 'Leave a Review',
+    'review.name': 'Your Name',
+    'review.namePlaceholder': 'Enter your name',
+    'review.rating': 'Rating',
+    'review.comment': 'Your Review',
+    'review.commentPlaceholder': 'Share your experience with MizuCaire...',
+    'review.submit': 'Submit Review',
+    'review.submitting': 'Submitting...',
+    'review.thankYou': 'Thank You!',
+    'review.submitted': 'Your review has been submitted and will appear on our homepage.',
   },
 
   ru: {
@@ -531,7 +554,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     'scanning.stat.analyzed': 'Проанализировано',
     'scanning.stat.scanning': 'Сканирование',
 
-    'survey.multiSelectHint': 'Выберите все подходящие варианты',
+    'survey.multiSelectHint': 'Выберите все подходящие ва��ианты',
     'survey.seeResults': 'Смотреть результаты',
     'survey.q1': 'Как ощущается ваша кожа через несколько часов после умывания?',
     'survey.q1.veryOily': 'Очень жирная',
@@ -632,6 +655,17 @@ export const translations: Record<Locale, TranslationKeys> = {
     'admin.avgPrice': 'Средняя цена',
     'admin.view.list': 'Список',
     'admin.view.cards': 'Карточки',
+
+    'review.title': 'Оставить отзыв',
+    'review.name': 'Ваше имя',
+    'review.namePlaceholder': 'Введите ваше имя',
+    'review.rating': 'Оценка',
+    'review.comment': 'Ваш отзыв',
+    'review.commentPlaceholder': 'Поделитесь своим опытом использования MizuCaire...',
+    'review.submit': 'Отправить отзыв',
+    'review.submitting': 'Отправка...',
+    'review.thankYou': 'Спасибо!',
+    'review.submitted': 'Ваш отзыв отправлен и появится на главной странице.',
   },
 
   kz: {
@@ -663,7 +697,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     'home.badge': '2 минуттық ЖИ тері талдауы',
     'home.hero.title1': 'Сіздің терің,',
     'home.hero.title2': 'Шешілді.',
-    'home.hero.subtitle': 'Болжамды тоқтатыңыз. MizuCaire компьютерлік көру арқылы теріңіздің бірегей профилін жасайды және нақты жұмыс істейтін күтім бағдарламасын жасайды.',
+    'home.hero.subtitle': 'Болжамды тоқтатыңыз. MizuCaire компьютерлік көру арқылы теріңіздің бірегей профилін жасайды және нақты жұмыс істейтін күтім бағдарламасы�� жасайды.',
     'home.hero.cta': 'Теріні талдау',
     'home.hero.science': 'Бесплатная консультация',
     'home.stats.scans': 'Сканерлеу аяқталды',
@@ -839,5 +873,16 @@ export const translations: Record<Locale, TranslationKeys> = {
     'admin.avgPrice': 'Орт. баға',
     'admin.view.list': 'Тізім',
     'admin.view.cards': 'Карталар',
+
+    'review.title': 'Пікір қалдыру',
+    'review.name': 'Сіздің атыңыз',
+    'review.namePlaceholder': 'Атыңызды енгізіңіз',
+    'review.rating': 'Бағалау',
+    'review.comment': 'Сіздің пікіріңіз',
+    'review.commentPlaceholder': 'MizuCaire тәжірибеңізбен бөлісіңіз...',
+    'review.submit': 'Пікірді жіберу',
+    'review.submitting': 'Жіберілуде...',
+    'review.thankYou': 'Рахмет!',
+    'review.submitted': 'Сіздің пікіріңіз жіберілді және басты бетте көрінеді.',
   },
 }

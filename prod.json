@@ -240,27 +240,15 @@
 		"usage_tip": "Suitable for all skin types. Apply patches to clean skin under the eyes and leave on for 15–20 minutes. Gently remove and pat in the remaining essence."
 	},
 	{
-		"id": 79,
-		"name": "Biodance Collagen Gel Toner Pads",
-		"description": "Gel-type toner pads infused with collagen that help improve skin elasticity, deeply hydrate, and smooth skin texture. Instantly relieve dryness and tightness while enhancing radiance and preparing the skin for makeup. Can be used as a targeted mask to calm irritation, reduce redness, and improve overall skin tone.",
-		"price": "11990.00",
-		"brand": "Biodance",
-		"type": "Toner Pads",
-		"image_url": "https://static.insales-cdn.com/r/LR9BAbNbnzc/rs:fit:1000:0:1/q:100/plain/images/products/1/7278/954883182/hollyshop-_87_-_1_.jpg@jpg",
-		"created_at": "2026-04-09T08:10:54.335Z",
-		"updated_at": "2026-04-09T08:10:54.335Z",
-		"usage_tip": "Suitable for all skin types, including sensitive skin. After cleansing, gently wipe the face with a pad. Can also be used as a mask by placing pads on the skin for 5–20 minutes."
-	},
-	{
 		"id": 78,
 		"name": "VT Cosmetics PDRN Tension Toner Pad",
 		"description": "Hydrating and firming toner pads infused with PDRN that help restore skin elasticity, improve tone, and boost radiance. Deeply moisturize, smooth texture, and reduce dullness while supporting the skin barrier. The stretchable pad design allows for use as a targeted mask, enhancing lifting and hydration effects.",
 		"price": "14990.00",
 		"brand": "VT Cosmetics",
-		"type": "Toner Pads",
+		"type": "Toner",
 		"image_url": "https://cdn.amelie-shop.kz/images/products/1/3441/2608385393/PDRN_Tension_Toner_Pad.png",
 		"created_at": "2026-04-09T08:06:30.303Z",
-		"updated_at": "2026-04-09T08:06:30.303Z",
+		"updated_at": "2026-04-09T15:08:37.884Z",
 		"usage_tip": "Suitable for all skin types. After cleansing, gently wipe the face with a pad. Can also be used as a quick lifting mask by placing pads on desired areas for 5–10 minutes."
 	},
 	{
@@ -269,10 +257,10 @@
 		"description": "Hydrating toner pads infused with seaweed extract that instantly replenish moisture, soothe dryness, and refresh the skin. Help improve skin tone, support the moisture barrier, and leave the skin soft, smooth, and radiant. Gentle texture makes them suitable for daily use, including sensitive skin.",
 		"price": "8390.00",
 		"brand": "Lagom",
-		"type": "Toner Pads",
+		"type": "Toner",
 		"image_url": "https://img-edg.joomcdn.net/44762c37c4038286aeee5e4f603194ac296b145e_original.jpeg",
 		"created_at": "2026-04-09T07:59:21.512Z",
-		"updated_at": "2026-04-09T07:59:21.512Z",
+		"updated_at": "2026-04-09T15:09:02.932Z",
 		"usage_tip": "Suitable for all skin types, especially dehydrated and dull skin. After cleansing, gently wipe the face with a pad. Can also be used as a quick mask by leaving pads on dry areas for 5–10 minutes."
 	},
 	{
