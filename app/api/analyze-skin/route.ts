@@ -2,6 +2,9 @@ import { generateText, Output } from "ai"
 import { z } from "zod"
 import { productDb, type Product } from "@/lib/db"
 
+const SKIN_ANALYSIS_MODEL =
+  process.env.SKIN_ANALYSIS_MODEL || "google/gemini-2.5-flash"
+
 const skinAnalysisSchema = z.object({
   skinType: z.enum(["Oily", "Dry", "Combination", "Sensitive", "Normal"]),
   concerns: z.array(z.string()).min(1).max(5),
@@ -37,8 +40,13 @@ function getMinimalProducts(products: Product[]): MinimalProduct[] {
 }
 
 export async function POST(req: Request) {
+  const requestId = `skin-analysis-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   try {
     const { imageData, surveyAnswers } = await req.json()
+    console.info(`[${requestId}] Received skin analysis request`, {
+      hasImage: Boolean(imageData),
+      surveyKeys: surveyAnswers ? Object.keys(surveyAnswers) : [],
+    })
 
     // Fetch all products from DB
     let allProducts: Product[] = []
@@ -75,6 +83,7 @@ ${JSON.stringify(minimalProducts, null, 0)}`
       : ""
 
     const prompt = `You are an expert dermatologist AI. Analyze this facial skin image and provide a detailed skin analysis.
+Use a direct, tough-love tone. Do not sugarcoat obvious skin issues. Be honest, slightly exaggerated for motivation, but never insulting.
 
 Survey answers from the user:
 - Oiliness level: ${surveyAnswers?.oiliness || "not specified"}
@@ -87,9 +96,10 @@ Based on the image analysis AND the survey answers, provide a comprehensive skin
 
 For skinType: Choose from Oily, Dry, Combination, Sensitive, or Normal based on what you observe.
 
-For concerns: Be specific based on what you see (e.g., "Visible pores on T-zone", "Mild dehydration lines", "Uneven skin tone", "Light acne scarring"). List 1-5 concerns.
+For concerns: Be specific based on what you see (e.g., "Visible pores on T-zone", "Mild dehydration lines", "Uneven skin tone", "Light acne scarring"). 
+Use stronger language when issues are visible (for example "noticeable dehydration", "clearly congested pores", "dull and tired skin"). List 1-5 concerns.
 
-For recommendations: Provide 3-5 actionable skincare advice tailored to the observed conditions.
+For recommendations: Provide 3-5 actionable skincare advice tailored to the observed conditions. Keep recommendations practical and urgent in tone.
 
 For analysis scores (0-100): Rate each metric based on what you observe:
 - hydration: How well-hydrated the skin appears
@@ -99,33 +109,54 @@ For analysis scores (0-100): Rate each metric based on what you observe:
 - elasticity: Skin firmness and youthful appearance
 
 For detailedNotes: A brief 1-2 sentence summary of the skin condition observed.
+The note should sound frank and corrective, like a dermatologist giving a reality check.
 
 For recommendedProductIds: Select up to 6 product IDs from our database that would be most beneficial for this skin type and concerns. Choose products that address the specific issues you identified.${productListForAI}`
 
-    const { output } = await generateText({
-      model: "google/gemini-2.5-flash-preview-04-17",
-      output: Output.object({
-        schema: skinAnalysisSchema,
-      }),
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              image: base64Data,
-              mimeType: mediaType,
-            },
-            {
-              type: "text",
-              text: prompt,
-            },
-          ],
-        },
-      ],
-    })
+    let output: z.infer<typeof skinAnalysisSchema> | undefined
+    try {
+      const aiResult = await generateText({
+        model: SKIN_ANALYSIS_MODEL,
+        output: Output.object({
+          schema: skinAnalysisSchema,
+        }),
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                image: base64Data,
+              mediaType,
+              },
+              {
+                type: "text",
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      })
+      output = aiResult.output
+      console.info(`[${requestId}] AI call succeeded`, {
+        model: SKIN_ANALYSIS_MODEL,
+        hasOutput: Boolean(output),
+        recommendedProductIdsCount: output?.recommendedProductIds?.length ?? 0,
+      })
+    } catch (aiError: unknown) {
+      const err = aiError instanceof Error ? aiError : new Error(String(aiError))
+      console.error(`[${requestId}] AI call failed, using fallback`, {
+        model: SKIN_ANALYSIS_MODEL,
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+        cause: err.cause,
+      })
+      return Response.json(getFallbackAnalysis(surveyAnswers || {}, allProducts))
+    }
 
     if (!output) {
+      console.warn(`[${requestId}] AI returned no output, using fallback`)
       return Response.json(getFallbackAnalysis(surveyAnswers, allProducts))
     }
 
@@ -140,7 +171,15 @@ For recommendedProductIds: Select up to 6 product IDs from our database that wou
     })
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Unknown error"
-    console.error("Skin analysis error:", errorMessage)
+    const errorName = err instanceof Error ? err.name : "UnknownError"
+    const errorStack = err instanceof Error ? err.stack : undefined
+    const errorCause = err instanceof Error ? err.cause : undefined
+    console.error(`[${requestId}] Skin analysis route error, using fallback`, {
+      message: errorMessage,
+      name: errorName,
+      stack: errorStack,
+      cause: errorCause,
+    })
     
     // Try to extract survey answers for fallback
     let allProducts: Product[] = []
@@ -262,7 +301,7 @@ function getFallbackAnalysis(surveyAnswers: Record<string, string>, products: Pr
     concerns: skinConcerns.length > 0 ? skinConcerns : ["Healthy skin balance"],
     recommendations: baseRecs[skinType] || baseRecs.Normal,
     analysis: analysisScores[skinType] || analysisScores.Normal,
-    detailedNotes: `Based on your survey responses, your skin appears to be ${skinType.toLowerCase()} type with ${skinConcerns[0]?.toLowerCase() || "balanced characteristics"}.`,
+    detailedNotes: `Based on your survey responses, your skin appears ${skinType.toLowerCase()} with ${skinConcerns[0]?.toLowerCase() || "visible imbalance"}. Your routine likely needs stronger consistency and targeted treatment to avoid worsening these issues.`,
     recommendedProductIds: recommendedProducts.map(p => p.id),
     recommendedProducts,
   }
