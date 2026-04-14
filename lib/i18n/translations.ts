@@ -26,6 +26,7 @@ export type TranslationKeys = {
   'nav.products': string
   'nav.science': string
   'nav.reviews': string
+  'nav.consulting': string
   'nav.admin': string
   'nav.tryScan': string
 
@@ -255,6 +256,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     'nav.products': 'Products',
     'nav.science': 'Science',
     'nav.reviews': 'Reviews',
+    'nav.consulting': 'Consulting',
     'nav.admin': 'Admin',
     'nav.tryScan': 'Try Scan',
 
@@ -473,6 +475,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     'nav.products': 'Продукты',
     'nav.science': 'Наука',
     'nav.reviews': 'Отзывы',
+    'nav.consulting': 'Консультация',
     'nav.admin': 'Адм��нистратор',
     'nav.tryScan': 'Сканировать',
 
@@ -691,6 +694,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     'nav.products': 'Өнімдер',
     'nav.science': 'Ғылым',
     'nav.reviews': 'Пікірлер',
+    'nav.consulting': 'Кеңес беру',
     'nav.admin': 'Әкімші',
     'nav.tryScan': 'Сканерлеу',
 

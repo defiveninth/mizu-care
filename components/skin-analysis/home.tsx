@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from "framer-motion"
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState } from "react"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -126,31 +126,9 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
   const { data: stats } = useSWR<Stats>('/api/stats', fetcher)
   const { data: reviews } = useSWR<Review[]>('/api/reviews', fetcher)
 
-  // Calculate display values from real stats
-  const displayScans = stats?.total_scans ? Math.floor(stats.total_scans / 1000) : 50
-  const displayRating = stats?.average_rating ? parseFloat(stats.average_rating.toString()) : 4.8
-  const displayAccuracy = stats?.accuracy_rate || 98
-
-  const testimonials = [
-    {
-      name: "Amira K.",
-      text: "Finally found products that actually work for my combination skin. My breakouts cleared up in 3 weeks!",
-      skinType: t('home.reviews.skin.combination'),
-      avatar: "AK",
-    },
-    {
-      name: "Sarah L.",
-      text: "The AI nailed my skin type. I've been using the wrong products for years — MizuCaire changed everything.",
-      skinType: t('home.reviews.skin.sensitive'),
-      avatar: "SL",
-    },
-    {
-      name: "Priya M.",
-      text: "Love that it takes 2 minutes. Got my whole morning and evening routine sorted. My skin is glowing!",
-      skinType: t('home.reviews.skin.dry'),
-      avatar: "PM",
-    },
-  ]
+  const displayScans = stats?.total_scans
+  const displayRating = stats?.average_rating
+  const displayAccuracy = stats?.accuracy_rate
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -172,6 +150,9 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
             </a>
             <a href="/products" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
               {t('nav.products')}
+            </a>
+            <a href="/chat" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {t('nav.consulting')}
             </a>
             <LanguageSwitcher variant="minimal" className="hidden sm:flex" />
             <Button onClick={onStart} size="sm" className="rounded-full">
@@ -236,21 +217,33 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
                 <motion.div variants={fadeUp} custom={4} className="flex items-center gap-8 pt-4">
                   <div>
                     <p className="text-2xl font-bold text-foreground font-display">
-                      <AnimatedCounter value={displayScans} suffix="K+" />
+                      {displayScans !== undefined ? (
+                        <AnimatedCounter value={displayScans} />
+                      ) : (
+                        <span>--</span>
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">{t('home.stats.scans')}</p>
                   </div>
                   <div className="h-8 w-px bg-border" />
                   <div>
                     <p className="text-2xl font-bold text-foreground font-display">
-                      <AnimatedCounter value={Math.floor(displayRating)} suffix={`.${Math.round((displayRating % 1) * 10)}★`} />
+                      {displayRating !== undefined ? (
+                        <span>{displayRating}★</span>
+                      ) : (
+                        <span>--</span>
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">{t('home.stats.rating')}</p>
                   </div>
                   <div className="h-8 w-px bg-border" />
                   <div>
                     <p className="text-2xl font-bold text-foreground font-display">
-                      <AnimatedCounter value={displayAccuracy} suffix="%" />
+                      {displayAccuracy !== undefined ? (
+                        <AnimatedCounter value={displayAccuracy} suffix="%" />
+                      ) : (
+                        <span>--</span>
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">{t('home.stats.accuracy')}</p>
                   </div>
@@ -444,17 +437,15 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {/* Show real reviews from database, fallback to mock testimonials */}
-            {(reviews && reviews.length > 0 ? reviews.slice(0, 3) : testimonials).map((item, i) => {
-              const isReview = 'author_name' in item
-              const name = isReview ? (item as Review).author_name : (item as typeof testimonials[0]).name
-              const text = isReview ? (item as Review).comment : (item as typeof testimonials[0]).text
-              const rating = isReview ? (item as Review).rating : 5
+            {reviews && reviews.length > 0 ? reviews.slice(0, 3).map((item, i) => {
+              const name = item.author_name
+              const text = item.comment
+              const rating = item.rating
               const avatar = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
               
               return (
                 <motion.div
-                  key={isReview ? (item as Review).id : name}
+                  key={item.id}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
@@ -477,15 +468,16 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-foreground">{name}</p>
-                        {!isReview && (
-                          <p className="text-xs text-muted-foreground">{(item as typeof testimonials[0]).skinType} Skin</p>
-                        )}
                       </div>
                     </div>
                   </Card>
                 </motion.div>
               )
-            })}
+            }) : (
+              <div className="col-span-full text-center text-sm text-muted-foreground py-6">
+                No reviews available yet.
+              </div>
+            )}
           </div>
         </div>
       </section>
