@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import WelcomeScreen from "@/components/skin-analysis/welcome-screen"
 import HomeScreen from '@/components/skin-analysis/home'
 import CameraCapture from "@/components/skin-analysis/camera-capture"
 import ScanningScreen from "@/components/skin-analysis/scanning-screen"
 import SurveyFlow from "@/components/skin-analysis/survey-flow"
-import ResultsScreen from "@/components/skin-analysis/results-screen"
+import { addStoredScan, type ScanData } from "@/lib/scan-storage"
 
 export type RecommendedProduct = {
   id: number
@@ -18,22 +19,7 @@ export type RecommendedProduct = {
   image_url: string | null
 }
 
-export type SkinData = {
-  image: string | null
-  surveyAnswers: Record<string, string>
-  skinType: string
-  concerns: string[]
-  recommendations: string[]
-  analysis?: {
-    hydration: number
-    oiliness: number
-    texture: number
-    clarity: number
-    elasticity: number
-  }
-  detailedNotes?: string
-  recommendedProducts?: RecommendedProduct[]
-}
+export type SkinData = ScanData
 
 export type AppScreen =
   | "home"
@@ -41,7 +27,6 @@ export type AppScreen =
   | "camera"
   | "scanning"
   | "survey"
-  | "results"
 
 interface AnalysisResult {
   skinType: string
@@ -58,15 +43,18 @@ interface AnalysisResult {
   recommendedProducts?: RecommendedProduct[]
 }
 
+const INITIAL_SKIN_DATA: SkinData = {
+  image: null,
+  surveyAnswers: {},
+  skinType: "",
+  concerns: [],
+  recommendations: [],
+}
+
 export default function SkinAnalysisApp() {
+  const router = useRouter()
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("home")
-  const [skinData, setSkinData] = useState<SkinData>({
-    image: null,
-    surveyAnswers: {},
-    skinType: "",
-    concerns: [],
-    recommendations: [],
-  })
+  const [skinData, setSkinData] = useState<SkinData>(INITIAL_SKIN_DATA)
 
   const handleStartAnalysis = () => {
     setCurrentScreen("camera")
@@ -86,39 +74,31 @@ export default function SkinAnalysisApp() {
   }
 
   const handleScanningComplete = (analysisResult?: AnalysisResult) => {
+    let completedData: SkinData
+
     if (analysisResult) {
-      // Use AI analysis results
-      setSkinData((prev) => ({
-        ...prev,
+      completedData = {
+        ...skinData,
         skinType: analysisResult.skinType,
         concerns: analysisResult.concerns,
         recommendations: analysisResult.recommendations,
         analysis: analysisResult.analysis,
         detailedNotes: analysisResult.detailedNotes,
         recommendedProducts: analysisResult.recommendedProducts,
-      }))
+      }
     } else {
-      // Fallback to survey-based analysis
       const { skinType, concerns, recommendations } = analyzeSkinFromSurvey(skinData.surveyAnswers)
-      setSkinData((prev) => ({
-        ...prev,
+      completedData = {
+        ...skinData,
         skinType,
         concerns,
         recommendations,
-      }))
+      }
     }
-    setCurrentScreen("results")
-  }
 
-  const handleRestart = () => {
-    setSkinData({
-      image: null,
-      surveyAnswers: {},
-      skinType: "",
-      concerns: [],
-      recommendations: [],
-    })
-    setCurrentScreen("home")
+    setSkinData(completedData)
+    const storedScan = addStoredScan(completedData)
+    router.push(`/results/${storedScan.id}`)
   }
 
   return (
@@ -144,9 +124,6 @@ export default function SkinAnalysisApp() {
           surveyAnswers={skinData.surveyAnswers}
           onComplete={handleScanningComplete}
         />
-      )}
-      {currentScreen === "results" && (
-        <ResultsScreen skinData={skinData} onRestart={handleRestart} />
       )}
     </main>
   )

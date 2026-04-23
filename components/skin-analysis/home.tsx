@@ -160,6 +160,9 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
             <a href="/products" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
               {t('nav.products')}
             </a>
+            <a href="/results" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {t('nav.history')}
+            </a>
             <a href="/chat" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
               {t('nav.consulting')}
             </a>
@@ -214,6 +217,15 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
                       className="group flex items-center justify-between rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
                     >
                       {t('nav.products')}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a
+                      href="/results"
+                      className="group flex items-center justify-between rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
+                    >
+                      {t('nav.history')}
                       <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                     </a>
                   </SheetClose>

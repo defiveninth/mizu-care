@@ -27,6 +27,7 @@ export type TranslationKeys = {
   'nav.science': string
   'nav.reviews': string
   'nav.consulting': string
+  'nav.history': string
   'nav.admin': string
   'nav.tryScan': string
 
@@ -194,6 +195,14 @@ export type TranslationKeys = {
   'results.metricStatus.good': string
   'results.metricStatus.fair': string
   'results.metricStatus.needsAttention': string
+  // History
+  'history.title': string
+  'history.emptyTitle': string
+  'history.emptySubtitle': string
+  'history.notFoundTitle': string
+  'history.notFoundSubtitle': string
+  'history.viewHistory': string
+  'history.open': string
 
   // Products page
   'products.title': string
@@ -296,6 +305,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     'nav.science': 'Science',
     'nav.reviews': 'Reviews',
     'nav.consulting': 'Consulting',
+    'nav.history': 'History',
     'nav.admin': 'Admin',
     'nav.tryScan': 'Try Scan',
 
@@ -457,6 +467,13 @@ export const translations: Record<Locale, TranslationKeys> = {
     'results.metricStatus.good': 'Good',
     'results.metricStatus.fair': 'Fair',
     'results.metricStatus.needsAttention': 'Needs attention',
+    'history.title': 'Scan history',
+    'history.emptyTitle': 'No saved scans yet.',
+    'history.emptySubtitle': 'Complete a face scan to see history here.',
+    'history.notFoundTitle': 'Scan not found',
+    'history.notFoundSubtitle': 'This scan may have been removed from local history.',
+    'history.viewHistory': 'View history',
+    'history.open': 'Open',
 
     'products.title': 'Products',
     'products.searchPlaceholder': 'Search products by name, brand, or description...',
@@ -554,6 +571,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     'nav.science': 'Наука',
     'nav.reviews': 'Отзывы',
     'nav.consulting': 'Консультация',
+    'nav.history': 'История',
     'nav.admin': 'Адм��нистратор',
     'nav.tryScan': 'Сканировать',
 
@@ -715,6 +733,13 @@ export const translations: Record<Locale, TranslationKeys> = {
     'results.metricStatus.good': 'Хорошо',
     'results.metricStatus.fair': 'Удовлетворительно',
     'results.metricStatus.needsAttention': 'Требует внимания',
+    'history.title': 'История сканов',
+    'history.emptyTitle': 'Сохраненных сканов пока нет.',
+    'history.emptySubtitle': 'Завершите сканирование лица, чтобы увидеть историю.',
+    'history.notFoundTitle': 'Скан не найден',
+    'history.notFoundSubtitle': 'Этот скан мог быть удален из локальной истории.',
+    'history.viewHistory': 'Открыть историю',
+    'history.open': 'Открыть',
 
     'products.title': 'Продукты',
     'products.searchPlaceholder': 'Поиск по названию, бренду или описанию...',
@@ -812,6 +837,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     'nav.science': 'Ғылым',
     'nav.reviews': 'Пікірлер',
     'nav.consulting': 'Кеңес беру',
+    'nav.history': 'Тарих',
     'nav.admin': 'Әкімші',
     'nav.tryScan': 'Сканерлеу',
 
@@ -973,6 +999,13 @@ export const translations: Record<Locale, TranslationKeys> = {
     'results.metricStatus.good': 'Жақсы',
     'results.metricStatus.fair': 'Қанағаттанарлық',
     'results.metricStatus.needsAttention': 'Назар қажет',
+    'history.title': 'Скан тарихы',
+    'history.emptyTitle': 'Сақталған скан әлі жоқ.',
+    'history.emptySubtitle': 'Тарихты көру үшін бет сканын аяқтаңыз.',
+    'history.notFoundTitle': 'Скан табылмады',
+    'history.notFoundSubtitle': 'Бұл скан жергілікті тарихтан жойылған болуы мүмкін.',
+    'history.viewHistory': 'Тарихты ашу',
+    'history.open': 'Ашу',
 
     'products.title': 'Өнімдер',
     'products.searchPlaceholder': 'Атауы, бренді немесе сипаттамасы бойынша іздеу...',

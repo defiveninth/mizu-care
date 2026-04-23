@@ -19,6 +19,7 @@ import {
   Star,
   Send,
   CheckCircle2,
+  History,
 } from "lucide-react"
 import { useI18n } from '@/lib/i18n'
 import Image from "next/image"
@@ -27,6 +28,8 @@ import Link from "next/link"
 interface ResultsScreenProps {
   skinData: SkinData
   onRestart: () => void
+  onGoHome: () => void
+  onViewHistory?: () => void
 }
 
 // Format price from "10990.00" to "10 990 ₸"
@@ -38,7 +41,7 @@ function formatPrice(price: string): string {
   return `${formatted} ₸`
 }
 
-export default function ResultsScreen({ skinData, onRestart }: ResultsScreenProps) {
+export default function ResultsScreen({ skinData, onRestart, onGoHome, onViewHistory }: ResultsScreenProps) {
   const { t } = useI18n()
   const { skinType, concerns, recommendations, analysis, detailedNotes, recommendedProducts } = skinData
 
@@ -94,9 +97,37 @@ export default function ResultsScreen({ skinData, onRestart }: ResultsScreenProp
       {/* Header */}
       <div className="bg-primary px-6 pb-20 pt-12">
         <div className="flex items-center justify-between">
+          <Button
+            onClick={onGoHome}
+            variant="secondary"
+            size="icon"
+            className="rounded-full bg-primary-foreground/90 text-primary hover:bg-primary-foreground"
+            aria-label="Go to home"
+          >
+            <Image
+              src="/icon-black.png"
+              alt="MizuCaire home"
+              width={16}
+              height={16}
+              className="h-4 w-4"
+            />
+          </Button>
           <h1 className="text-xl font-semibold text-primary-foreground">
             {t('results.title')}
           </h1>
+          {onViewHistory ? (
+            <Button
+              onClick={onViewHistory}
+              variant="secondary"
+              size="icon"
+              className="rounded-full bg-primary-foreground/90 text-primary hover:bg-primary-foreground"
+              aria-label="See scan history"
+            >
+              <History className="h-4 w-4" />
+            </Button>
+          ) : (
+            <div className="h-10 w-10" />
+          )}
         </div>
       </div>
 
