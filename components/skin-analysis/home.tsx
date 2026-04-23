@@ -18,10 +18,19 @@ import {
   Heart,
   Users,
   CheckCircle2,
+  Menu,
 } from "lucide-react"
 import Image from 'next/image'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useI18n } from '@/lib/i18n'
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -141,7 +150,7 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
             </div>
             <span className="text-xl font-bold text-foreground font-display">MizuCaire</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-4">
             <a href="#science" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
               {t('nav.science')}
             </a>
@@ -158,6 +167,80 @@ const HomeScreen = ({ onStart }: { onStart: () => void }) => {
             <Button onClick={onStart} size="sm" className="rounded-full">
               {t('nav.tryScan')} <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Button>
+          </div>
+          <div className="sm:hidden flex items-center gap-2">
+            <Button onClick={onStart} size="sm" className="rounded-full">
+              {t('nav.tryScan')}
+            </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full border-border/70 bg-background/90 shadow-sm"
+                  aria-label="Open mobile menu"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[88%] max-w-sm px-5 pt-8">
+                <SheetHeader className="px-0 pb-2">
+                  <SheetTitle className="font-display text-xl">MizuCaire</SheetTitle>
+                  <p className="text-sm text-muted-foreground">Navigation</p>
+                </SheetHeader>
+
+                <div className="mt-2 rounded-2xl border border-border/60 bg-card/70 p-2">
+                  <SheetClose asChild>
+                    <a
+                      href="#science"
+                      className="group flex items-center justify-between rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
+                    >
+                      {t('nav.science')}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a
+                      href="#reviews"
+                      className="group flex items-center justify-between rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
+                    >
+                      {t('nav.reviews')}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a
+                      href="/products"
+                      className="group flex items-center justify-between rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
+                    >
+                      {t('nav.products')}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a
+                      href="/chat"
+                      className="group flex items-center justify-between rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent"
+                    >
+                      {t('nav.consulting')}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </a>
+                  </SheetClose>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-border/60 bg-card/70 p-3">
+                  <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Language</p>
+                  <LanguageSwitcher variant="minimal" className="rounded-lg" />
+                </div>
+
+                <SheetClose asChild>
+                  <Button onClick={onStart} className="mt-5 w-full rounded-full">
+                    {t('nav.tryScan')} <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </SheetClose>
+                <p className="mt-3 text-center text-xs text-muted-foreground">AI skin analysis in under 1 minute</p>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>
