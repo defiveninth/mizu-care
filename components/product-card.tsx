@@ -1,7 +1,6 @@
 "use client"
 
 import { Product } from "@/lib/db"
-import { useTranslatedProduct } from "@/hooks/use-translated-product"
 import { useI18n } from "@/lib/i18n"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -30,16 +29,13 @@ interface ProductCardProps {
   onAdd: () => void
 }
 
-export function ProductCard({ product: initialProduct, isAdded, onAdd }: ProductCardProps) {
+export function ProductCard({ product, isAdded, onAdd }: ProductCardProps) {
   const { t } = useI18n()
-  const { product, isTranslating } = useTranslatedProduct(initialProduct)
-  
-  // Use translated product if available, otherwise fallback to initial
-  const p = product || initialProduct
+  const p = product
 
   return (
     <Link href={`/products/${p.id}`} className="block h-full">
-      <Card className={`p-0 group overflow-hidden border-border/50 hover:shadow-elevated hover:border-primary/30 transition-all duration-300 h-full flex flex-col cursor-pointer ${isTranslating ? 'opacity-70' : ''}`}>
+      <Card className={`p-0 group overflow-hidden border-border/50 hover:shadow-elevated hover:border-primary/30 transition-all duration-300 h-full flex flex-col cursor-pointer`}>
         {/* Product Image */}
         <div className="relative h-64 bg-linear-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden">
           {p.image_url ? (
@@ -57,15 +53,10 @@ export function ProductCard({ product: initialProduct, isAdded, onAdd }: Product
           )}
           {/* Type Badge */}
           <div className="absolute top-3 left-3">
-            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${typeColors[initialProduct.type] || 'bg-gray-500/10 text-gray-600'}`}>
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${typeColors[p.type] || 'bg-gray-500/10 text-gray-600'}`}>
               {p.type}
             </span>
           </div>
-          {isTranslating && (
-            <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px] flex items-center justify-center">
-               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            </div>
-          )}
         </div>
         
         {/* Product Info */}

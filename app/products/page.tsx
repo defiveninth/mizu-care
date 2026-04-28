@@ -61,15 +61,15 @@ const typeColors: Record<string, string> = {
 }
 
 export default function ProductsPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedBrand, setSelectedBrand] = useState<string>("")
   const [selectedType, setSelectedType] = useState<string>("")
   const [basketIds, setBasketIds] = useState<Set<number>>(() => new Set())
   
-  const { data: products, isLoading } = useSWR<Product[]>('/api/products', fetcher)
+  const { data: products, isLoading } = useSWR<Product[]>(`/api/products?locale=${locale}`, fetcher)
   const { data: brands } = useSWR<string[]>('/api/products/brands', fetcher)
-  const { data: types } = useSWR<string[]>('/api/products/types', fetcher)
+  const { data: types } = useSWR<string[]>(`/api/products/types?locale=${locale}`, fetcher)
 
   useEffect(() => {
     const refresh = () => {

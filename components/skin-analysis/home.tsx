@@ -66,10 +66,10 @@ const staggerContainer = {
 }
 
 const skinMetrics = [
-  { label: "Hydration", value: 78, color: "hsl(var(--primary))" },
-  { label: "Elasticity", value: 85, color: "hsl(200 45% 50%)" },
-  { label: "Texture", value: 62, color: "hsl(180 40% 45%)" },
-  { label: "Clarity", value: 91, color: "hsl(160 45% 50%)" },
+  { label: "Hydration", value: 78, color: "oklch(0.65 0.18 350)" },
+  { label: "Elasticity", value: 85, color: "oklch(0.75 0.15 340)" },
+  { label: "Texture", value: 62, color: "oklch(0.85 0.1 330)" },
+  { label: "Clarity", value: 91, color: "oklch(0.7 0.18 350)" },
 ]
 
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {

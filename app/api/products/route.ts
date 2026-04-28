@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { productDb } from '@/lib/db'
+import { translateAndStoreProduct } from '@/lib/translation-service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,8 +8,9 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || undefined
     const brand = searchParams.get('brand') || undefined
     const type = searchParams.get('type') || undefined
+    const locale = searchParams.get('locale') || 'en'
 
-    const products = await productDb.getFiltered(search, brand, type)
+    const products = await productDb.getFiltered(search, brand, type, locale)
     return NextResponse.json(products)
   } catch (error) {
     console.error('Failed to fetch products:', error)
@@ -37,6 +39,9 @@ export async function POST(request: NextRequest) {
       type,
       image_url,
     })
+
+    // Trigger background translations
+    translateAndStoreProduct(newProduct.id, { name, description, usage_tip, type })
 
     return NextResponse.json(newProduct, { status: 201 })
   } catch (error) {

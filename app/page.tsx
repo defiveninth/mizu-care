@@ -102,7 +102,7 @@ export default function SkinAnalysisApp() {
   }
 
   return (
-    <main className="min-h-screen bg-[#eef0f1]">
+    <main className="min-h-screen bg-background">
       {currentScreen === "home" && (
         <HomeScreen onStart={() => setCurrentScreen("welcome")} />
       )}

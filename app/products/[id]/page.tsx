@@ -45,17 +45,15 @@ const typeColors: Record<string, string> = {
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [added, setAdded] = useState(false)
 
-  const { data: initialProduct, isLoading, error } = useSWR<Product>(
-    id ? `/api/products/${id}` : null,
+  const { data: product, isLoading, error } = useSWR<Product>(
+    id ? `/api/products/${id}?locale=${locale}` : null,
     fetcher
   )
 
-  const { product, isTranslating } = useTranslatedProduct(initialProduct)
-  
-  const p = product || initialProduct
+  const p = product
 
   if (isLoading) {
     return (
@@ -147,15 +145,10 @@ export default function ProductDetailPage() {
             )}
             {/* Type badge */}
             <div className="absolute top-4 left-4">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${typeColors[initialProduct?.type || ''] || "bg-gray-500/10 text-gray-600"}`}>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${typeColors[p?.type || ''] || "bg-gray-500/10 text-gray-600"}`}>
                 {p?.type}
               </span>
             </div>
-            {isTranslating && (
-              <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px] flex items-center justify-center">
-                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            )}
           </div>
 
           {/* Title & Brand */}

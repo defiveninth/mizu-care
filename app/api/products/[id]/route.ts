@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { productDb } from '@/lib/db'
+import { translateAndStoreProduct } from '@/lib/translation-service'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
-    const product = await productDb.getById(parseInt(id))
+    const { searchParams } = new URL(request.url)
+    const locale = searchParams.get('locale') || 'en'
+    
+    const product = await productDb.getById(parseInt(id), locale)
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
@@ -49,6 +53,9 @@ export async function PUT(
     if (!updatedProduct) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
+
+    // Trigger background translations on update
+    translateAndStoreProduct(updatedProduct.id, { name, description, usage_tip, type })
 
     return NextResponse.json(updatedProduct)
   } catch (error) {
