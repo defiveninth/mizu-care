@@ -62,6 +62,26 @@ const typeColors: Record<string, string> = {
 
 export default function ProductsPage() {
   const { t } = useI18n()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedBrand, setSelectedBrand] = useState<string>("")
+  const [selectedType, setSelectedType] = useState<string>("")
+  const [basketIds, setBasketIds] = useState<Set<number>>(() => new Set())
+  
+  const { data: products, isLoading } = useSWR<Product[]>('/api/products', fetcher)
+  const { data: brands } = useSWR<string[]>('/api/products/brands', fetcher)
+  const { data: types } = useSWR<string[]>('/api/products/types', fetcher)
+
+  useEffect(() => {
+    const refresh = () => {
+      const ids = new Set(readBasket().map((item) => item.id))
+      setBasketIds(ids)
+    }
+
+    refresh()
+    window.addEventListener("storage", refresh)
+    return () => window.removeEventListener("storage", refresh)
+  }, [])
+
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 12
 
