@@ -31,7 +31,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 const typeColors: Record<string, string> = {
   "Spray": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  "Cream": "bg-pink-500/10 text-pink-600 dark:text-pink-400",
+  "Cream": "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
   "Serum": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   "Cleanser": "bg-green-500/10 text-green-600 dark:text-green-400",
   "Toner": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
@@ -39,7 +39,7 @@ const typeColors: Record<string, string> = {
   "Mask": "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
   "Oil": "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   "Sunscreen": "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-  "Exfoliant": "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  "Exfoliant": "bg-sky-500/10 text-sky-600 dark:text-sky-400",
 }
 
 export default function ProductDetailPage() {
