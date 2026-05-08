@@ -13,10 +13,10 @@ export type RecommendedProduct = {
   id: number
   name: string
   description: string | null
-  price: string
-  brand: string
-  type: string
+  price: number
   image_url: string | null
+  link: string | null
+  sostav: string[]
 }
 
 export type SkinData = ScanData

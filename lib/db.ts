@@ -1,225 +1,167 @@
+import fs from 'fs'
+import path from 'path'
 import { neon } from '@neondatabase/serverless'
 
 const sql = neon(process.env.DATABASE_URL!)
+
+// Helper to read products from JSON file
+const getProductsFromJson = () => {
+  const filePath = path.join(process.cwd(), 'products_v3.json')
+  const fileContent = fs.readFileSync(filePath, 'utf8')
+  const rawProducts = JSON.parse(fileContent)
+  
+  return rawProducts.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description || null,
+    price: typeof p.price === 'string' ? parseInt(p.price.replace(/[^\d]/g, '')) || 0 : p.price,
+    image_url: p.image || null,
+    link: p.link || null,
+    sostav: p.sostav || [],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }))
+}
 
 export interface Product {
   id: number
   name: string
   description: string | null
-  usage_tip: string | null
   price: number
-  brand: string
-  type: string
   image_url: string | null
+  link: string | null
+  sostav: string[]
   created_at: string
   updated_at: string
 }
 
-export interface CreateProductInput {
-  name: string
-  description?: string | null
-  usage_tip?: string | null
-  price: number
-  brand: string
-  type: string
-  image_url?: string | null
+export interface Review {
+  id: number
+  author_name: string
+  rating: number
+  comment: string
+  created_at: string
 }
 
-export interface ProductTranslation {
-  id: number
-  product_id: number
-  locale: string
-  name: string
-  description: string | null
-  usage_tip: string | null
-  type: string
-  created_at: string
+export interface Stats {
+  total_scans: number
+  total_ratings: number
+  ratings_sum: number
+  accuracy_rate: number
   updated_at: string
 }
 
 export const productDb = {
-  async getAll(locale?: string): Promise<Product[]> {
-    if (!locale || locale === 'en') {
-      return await sql`SELECT * FROM products ORDER BY created_at DESC` as Product[]
-    }
-
-    return await sql`
-      SELECT 
-        p.id,
-        COALESCE(pt.name, p.name) as name,
-        COALESCE(pt.description, p.description) as description,
-        COALESCE(pt.usage_tip, p.usage_tip) as usage_tip,
-        p.price,
-        p.brand,
-        COALESCE(pt.type, p.type) as type,
-        p.image_url,
-        p.created_at,
-        p.updated_at
-      FROM products p
-      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.locale = ${locale}
-      ORDER BY p.created_at DESC
-    ` as Product[]
+  async getAll(): Promise<Product[]> {
+    return getProductsFromJson()
   },
 
-  async getById(id: number, locale?: string): Promise<Product | undefined> {
-    if (!locale || locale === 'en') {
-      const rows = await sql`SELECT * FROM products WHERE id = ${id}` as Product[]
-      return rows[0]
-    }
-
-    const rows = await sql`
-      SELECT 
-        p.id,
-        COALESCE(pt.name, p.name) as name,
-        COALESCE(pt.description, p.description) as description,
-        COALESCE(pt.usage_tip, p.usage_tip) as usage_tip,
-        p.price,
-        p.brand,
-        COALESCE(pt.type, p.type) as type,
-        p.image_url,
-        p.created_at,
-        p.updated_at
-      FROM products p
-      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.locale = ${locale}
-      WHERE p.id = ${id}
-    ` as Product[]
-    return rows[0]
+  async getById(id: number): Promise<Product | undefined> {
+    const products = getProductsFromJson()
+    return products.find(p => p.id === id)
   },
 
-  async getFiltered(
-    search?: string,
-    brand?: string,
-    type?: string,
-    locale?: string
-  ): Promise<Product[]> {
-    const isEnglish = !locale || locale === 'en'
-    const conditions: string[] = []
-    const values: any[] = []
-    let i = 1
+  async getFiltered(search?: string): Promise<Product[]> {
+    let products = getProductsFromJson()
 
     if (search) {
-      if (isEnglish) {
-        conditions.push(`(name ILIKE $${i} OR description ILIKE $${i} OR brand ILIKE $${i})`)
-      } else {
-        conditions.push(`(pt.name ILIKE $${i} OR pt.description ILIKE $${i} OR p.brand ILIKE $${i})`)
-      }
-      values.push(`%${search}%`)
-      i++
+      const lowerSearch = search.toLowerCase()
+      products = products.filter(p => 
+        p.name.toLowerCase().includes(lowerSearch) || 
+        (p.description && p.description.toLowerCase().includes(lowerSearch))
+      )
     }
 
-    if (brand) {
-      conditions.push(`p.brand = $${i}`)
-      values.push(brand)
-      i++
-    }
+    return products
+  }
+}
 
-    if (type) {
-      if (isEnglish) {
-        conditions.push(`p.type = $${i}`)
-      } else {
-        conditions.push(`pt.type = $${i}`)
-      }
-      values.push(type)
-      i++
-    }
-
-    let query = `
-      SELECT 
-        p.id,
-        ${isEnglish ? 'p.name' : 'COALESCE(pt.name, p.name) as name'},
-        ${isEnglish ? 'p.description' : 'COALESCE(pt.description, p.description) as description'},
-        ${isEnglish ? 'p.usage_tip' : 'COALESCE(pt.usage_tip, p.usage_tip) as usage_tip'},
-        p.price,
-        p.brand,
-        ${isEnglish ? 'p.type' : 'COALESCE(pt.type, p.type) as type'},
-        p.image_url,
-        p.created_at,
-        p.updated_at
-      FROM products p
-    `
-
-    if (!isEnglish) {
-      query += ` LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.locale = $${i++}`
-      values.push(locale)
-    }
-
-    if (conditions.length > 0) {
-      query += ` WHERE ${conditions.join(' AND ')}`
-    }
-
-    query += ` ORDER BY p.created_at DESC`
-
-    return await sql(query, values) as Product[]
+export const reviewDb = {
+  async getAll(): Promise<Review[]> {
+    const reviews = await sql`
+      SELECT id, author_name, rating, comment, created_at 
+      FROM reviews 
+      ORDER BY created_at DESC 
+    ` as Review[]
+    return reviews
   },
 
-  async getBrands(): Promise<string[]> {
-    const rows = await sql`SELECT DISTINCT brand FROM products ORDER BY brand` as { brand: string }[]
-    return rows.map(r => r.brand)
-  },
+  async create(data: Omit<Review, 'id' | 'created_at'>): Promise<Review> {
+    const result = await sql`
+      INSERT INTO reviews (author_name, rating, comment)
+      VALUES (${data.author_name}, ${data.rating}, ${data.comment})
+      RETURNING id, author_name, rating, comment, created_at
+    ` as Review[]
 
-  async getTypes(locale?: string): Promise<string[]> {
-    if (!locale || locale === 'en') {
-      const rows = await sql`SELECT DISTINCT type FROM products ORDER BY type` as { type: string }[]
-      return rows.map(r => r.type)
-    }
-    const rows = await sql`
-      SELECT DISTINCT COALESCE(pt.type, p.type) as type 
-      FROM products p
-      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.locale = ${locale}
-      ORDER BY type
-    ` as { type: string }[]
-    return rows.map(r => r.type)
-  },
-
-  async create(product: CreateProductInput): Promise<Product> {
-    const rows = await sql`
-      INSERT INTO products (name, description, usage_tip, price, brand, type, image_url)
-      VALUES (${product.name}, ${product.description ?? null}, ${product.usage_tip ?? null}, ${product.price}, ${product.brand}, ${product.type}, ${product.image_url ?? null})
-      RETURNING *
-    ` as Product[]
-    return rows[0]
-  },
-
-  async update(id: number, product: CreateProductInput): Promise<Product | undefined> {
-    const rows = await sql`
-      UPDATE products
-      SET name = ${product.name},
-          description = ${product.description ?? null},
-          usage_tip = ${product.usage_tip ?? null},
-          price = ${product.price},
-          brand = ${product.brand},
-          type = ${product.type},
-          image_url = ${product.image_url ?? null},
+    // Update stats in DB
+    await sql`
+      UPDATE scan_stats 
+      SET total_ratings = total_ratings + 1,
+          ratings_sum = ratings_sum + ${data.rating},
           updated_at = NOW()
-      WHERE id = ${id}
-      RETURNING *
-    ` as Product[]
-    return rows[0]
+      WHERE id = 1
+    `
+    
+    return result[0]
   },
 
   async delete(id: number): Promise<boolean> {
-    const rows = await sql`DELETE FROM products WHERE id = ${id} RETURNING id` as { id: number }[]
-    return rows.length > 0
-  },
+    const existing = await sql`
+      SELECT rating FROM reviews WHERE id = ${id}
+    ` as { rating: number }[]
+
+    if (existing.length === 0) return false
+
+    const rating = existing[0].rating
+
+    await sql`DELETE FROM reviews WHERE id = ${id}`
+
+    // Update stats in DB
+    await sql`
+      UPDATE scan_stats 
+      SET total_ratings = GREATEST(total_ratings - 1, 0),
+          ratings_sum = GREATEST(ratings_sum - ${rating}, 0),
+          updated_at = NOW()
+      WHERE id = 1
+    `
+    
+    return true
+  }
 }
 
-export const translationDb = {
-  async upsert(translation: Partial<ProductTranslation>): Promise<ProductTranslation> {
-    const rows = await sql`
-      INSERT INTO product_translations (product_id, locale, name, description, usage_tip, type)
-      VALUES (${translation.product_id}, ${translation.locale}, ${translation.name}, ${translation.description}, ${translation.usage_tip}, ${translation.type})
-      ON CONFLICT (product_id, locale) DO UPDATE SET
-        name = EXCLUDED.name,
-        description = EXCLUDED.description,
-        usage_tip = EXCLUDED.usage_tip,
-        type = EXCLUDED.type,
-        updated_at = NOW()
-      RETURNING *
-    ` as ProductTranslation[]
-    return rows[0]
+export const statsDb = {
+  async get(): Promise<Stats & { average_rating: number }> {
+    const stats = await sql`
+      SELECT 
+        total_scans,
+        total_ratings,
+        ratings_sum,
+        accuracy_rate,
+        CASE 
+          WHEN total_ratings > 0 THEN ROUND((ratings_sum::decimal / total_ratings), 1)
+          ELSE 0 
+        END as average_rating,
+        updated_at
+      FROM scan_stats 
+      WHERE id = 1
+    ` as (Stats & { average_rating: number })[]
+    
+    return stats[0] || {
+      total_scans: 0,
+      total_ratings: 0,
+      ratings_sum: 0,
+      accuracy_rate: 98,
+      average_rating: 0,
+      updated_at: new Date().toISOString()
+    }
   },
 
-  async getForProduct(productId: number): Promise<ProductTranslation[]> {
-    return await sql`SELECT * FROM product_translations WHERE product_id = ${productId}` as ProductTranslation[]
+  async incrementScans(): Promise<void> {
+    await sql`
+      UPDATE scan_stats 
+      SET total_scans = total_scans + 1,
+          updated_at = NOW()
+      WHERE id = 1
+    `
   }
 }

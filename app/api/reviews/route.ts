@@ -1,15 +1,9 @@
-import { neon } from '@neondatabase/serverless'
 import { NextResponse } from 'next/server'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { reviewDb } from '@/lib/db'
 
 export async function GET() {
   try {
-    const reviews = await sql`
-      SELECT id, author_name, rating, comment, created_at 
-      FROM reviews 
-      ORDER BY created_at DESC 
-    `
+    const reviews = await reviewDb.getAll()
     return NextResponse.json(reviews)
   } catch (error) {
     console.error('Error fetching reviews:', error)
@@ -29,22 +23,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 })
     }
 
-    const result = await sql`
-      INSERT INTO reviews (author_name, rating, comment)
-      VALUES (${author_name}, ${rating}, ${comment})
-      RETURNING id, author_name, rating, comment, created_at
-    `
+    const newReview = await reviewDb.create({
+      author_name,
+      rating: Number(rating),
+      comment
+    })
 
-    // Update stats
-    await sql`
-      UPDATE scan_stats 
-      SET total_ratings = total_ratings + 1,
-          ratings_sum = ratings_sum + ${rating},
-          updated_at = NOW()
-      WHERE id = 1
-    `
-
-    return NextResponse.json(result[0], { status: 201 })
+    return NextResponse.json(newReview, { status: 201 })
   } catch (error) {
     console.error('Error creating review:', error)
     return NextResponse.json({ error: 'Failed to create review' }, { status: 500 })

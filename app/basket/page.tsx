@@ -66,9 +66,7 @@ export default function BasketPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-primary font-medium">{item.brand}</p>
                     <p className="font-semibold text-foreground truncate">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.type}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-foreground">{Number(item.price).toLocaleString("ru-KZ")} ₸</p>

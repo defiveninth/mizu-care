@@ -1,8 +1,6 @@
 import { generateText } from "ai"
-import { neon } from "@neondatabase/serverless"
 import { NextRequest, NextResponse } from "next/server"
-
-const sql = neon(process.env.DATABASE_URL!)
+import { reviewDb } from "@/lib/db"
 
 const REVIEW_ANALYSIS_MODEL =
   process.env.REVIEW_ANALYSIS_MODEL || "google/gemini-2.5-flash"
@@ -32,14 +30,6 @@ const LOCALE_LABELS: Record<Locale, string> = {
   kz: "Kazakh",
 }
 
-interface ReviewRow {
-  id: number
-  author_name: string
-  rating: number
-  comment: string
-  created_at: string
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -55,12 +45,8 @@ export async function POST(req: NextRequest) {
       : "en"
     const cutoffDate = new Date(Date.now() - PERIOD_TO_MS[period])
 
-    const reviews = await sql`
-      SELECT id, author_name, rating, comment, created_at
-      FROM reviews
-      WHERE created_at >= ${cutoffDate.toISOString()}
-      ORDER BY created_at DESC
-    ` as ReviewRow[]
+    const allReviews = await reviewDb.getAll()
+    const reviews = allReviews.filter(r => new Date(r.created_at) >= cutoffDate)
 
     if (reviews.length === 0) {
       return NextResponse.json({

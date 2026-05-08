@@ -7,49 +7,34 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, ShoppingBag, Lightbulb, Tag, Info, Check } from "lucide-react"
+import { ArrowLeft, ShoppingBag, ExternalLink, Info, Check, ListChecks } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n"
-import { useTranslatedProduct } from "@/hooks/use-translated-product"
 import { addToBasket } from "@/lib/basket"
 
 interface Product {
   id: number
   name: string
   description: string | null
-  usage_tip: string | null
   price: number
-  brand: string
-  type: string
   image_url: string | null
+  link: string | null
+  sostav: string[]
   created_at: string
   updated_at: string
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-const typeColors: Record<string, string> = {
-  "Spray": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  "Cream": "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-  "Serum": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  "Cleanser": "bg-green-500/10 text-green-600 dark:text-green-400",
-  "Toner": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  "Moisturizer": "bg-teal-500/10 text-teal-600 dark:text-teal-400",
-  "Mask": "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-  "Oil": "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  "Sunscreen": "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-  "Exfoliant": "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-}
-
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const [added, setAdded] = useState(false)
 
   const { data: product, isLoading, error } = useSWR<Product>(
-    id ? `/api/products/${id}?locale=${locale}` : null,
+    id ? `/api/products/${id}` : null,
     fetcher
   )
 
@@ -90,8 +75,6 @@ export default function ProductDetailPage() {
     )
   }
 
-  const typeColor = typeColors[product.type] || "bg-gray-500/10 text-gray-600"
-
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
@@ -121,112 +104,109 @@ export default function ProductDetailPage() {
         </div>
       </nav>
 
-      <div className="container mx-auto px-6 py-10 max-w-3xl">
+      <div className="container mx-auto max-w-6xl px-6 md:px-12 py-8 md:py-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
-          className="space-y-8"
+          className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20"
         >
-          {/* Product Image */}
-          <div className="relative h-72 md:h-96 w-full rounded-2xl overflow-hidden bg-linear-to-br from-muted to-muted/50 flex items-center justify-center">
+          {/* Left Column: Product Image */}
+          <div className="relative aspect-square w-full rounded-3xl overflow-hidden bg-white shadow-sm border border-border/40 flex items-center justify-center p-8 md:p-12">
             {p?.image_url ? (
-              <Image
-                src={p.image_url}
-                alt={p.name}
-                fill
-                className="object-cover"
-              />
+              <div className="relative w-full h-full">
+                <Image
+                  src={p.image_url}
+                  alt={p.name}
+                  fill
+                  className="object-contain transition-transform duration-500 hover:scale-105"
+                  priority
+                />
+              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center text-muted-foreground/40">
-                <ShoppingBag className="h-20 w-20 mb-3" />
-                <span className="text-sm">{p?.type}</span>
+              <div className="flex flex-col items-center justify-center text-muted-foreground/20">
+                <ShoppingBag className="h-24 w-24 mb-4" />
+                <span className="text-sm font-medium">No image available</span>
               </div>
             )}
-            {/* Type badge */}
-            <div className="absolute top-4 left-4">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${typeColors[p?.type || ''] || "bg-gray-500/10 text-gray-600"}`}>
-                {p?.type}
-              </span>
-            </div>
           </div>
 
-          {/* Title & Brand */}
-          <div>
-            <p className="text-sm font-semibold text-primary mb-1">{p?.brand}</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground text-balance leading-tight mb-3">
-              {p?.name}
-            </h1>
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-2xl font-bold text-foreground">{Number(p?.price).toLocaleString('ru-KZ')} ₸</span>
-              <Badge variant="outline" className="rounded-full">
-                <Tag className="h-3 w-3 mr-1" />
-                {p?.brand}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Description */}
-          {p?.description && (
-              <div className="rounded-2xl border border-border/50 bg-card p-5 space-y-2">
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Info className="h-4 w-4 text-primary" />
-                {t('product.description')}
+          {/* Right Column: Info & Actions */}
+          <div className="flex flex-col space-y-10">
+            <div className="space-y-6">
+              <h1 className="text-3xl md:text-5xl font-bold text-foreground text-balance leading-tight tracking-tight">
+                {p?.name}
+              </h1>
+              
+              <div className="flex items-center gap-6 flex-wrap">
+                <span className="text-3xl md:text-4xl font-bold text-primary">{Number(p?.price).toLocaleString('ru-KZ')} ₸</span>
+                {p?.link && (
+                  <Link href={p.link} target="_blank">
+                    <Button variant="outline" className="rounded-full px-6 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Buy Online
+                    </Button>
+                  </Link>
+                )}
               </div>
-              <p className="text-muted-foreground leading-relaxed text-sm">
-                {p.description}
-              </p>
             </div>
-          )}
 
-          {/* Usage Tip */}
-          {p?.usage_tip && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
-              className="rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-2"
-            >
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <Lightbulb className="h-4 w-4" />
-                {t('product.usageTip')}
+            {/* Description */}
+            {p?.description && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">
+                  <Info className="h-3.5 w-3.5 text-primary" />
+                  {t('product.description')}
+                </div>
+                <p className="text-muted-foreground leading-relaxed text-lg">
+                  {p.description}
+                </p>
               </div>
-              <p className="text-foreground leading-relaxed text-sm">
-                {p.usage_tip}
-              </p>
-            </motion.div>
-          )}
+            )}
 
-          {/* CTA */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              className="flex-1 rounded-full py-6 text-base font-semibold"
-              onClick={() => {
-                if (!p) return
-                addToBasket({
-                  id: p.id,
-                  name: p.name,
-                  price: Number(p.price),
-                  brand: p.brand,
-                  type: p.type,
-                  image_url: p.image_url,
-                })
-                setAdded(true)
-                window.setTimeout(() => setAdded(false), 1500)
-              }}
-            >
-              {added ? (
-                <span className="inline-flex items-center gap-2">
-                  <Check className="h-4 w-4" />
-                  {t('basket.addedToBasket')}
-                </span>
-              ) : (
-                t('product.addToRoutine')
-              )}
-            </Button>
-            <Button variant="outline" className="rounded-full py-6 px-6" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+            {/* Ingredients (Sostav) */}
+            {p?.sostav && p.sostav.length > 0 && (
+              <div className="space-y-5">
+                <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">
+                  <ListChecks className="h-3.5 w-3.5 text-primary" />
+                  Ingredients
+                </div>
+                <div className="flex flex-wrap gap-2.5">
+                  {p.sostav.map((ing, i) => (
+                    <Badge key={i} variant="secondary" className="rounded-full py-1.5 px-4 bg-secondary/40 text-secondary-foreground border-none hover:bg-secondary/60 transition-colors">
+                      {ing}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CTA */}
+            <div className="flex gap-4 pt-8 mt-auto">
+              <Button
+                className="flex-1 rounded-full py-8 text-xl font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+                onClick={() => {
+                  if (!p) return
+                  addToBasket({
+                    id: p.id,
+                    name: p.name,
+                    price: Number(p.price),
+                    image_url: p.image_url,
+                  } as any)
+                  setAdded(true)
+                  window.setTimeout(() => setAdded(false), 1500)
+                }}
+              >
+                {added ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Check className="h-6 w-6" />
+                    {t('basket.addedToBasket')}
+                  </span>
+                ) : (
+                  t('product.addToRoutine')
+                )}
+              </Button>
+            </div>
           </div>
         </motion.div>
       </div>

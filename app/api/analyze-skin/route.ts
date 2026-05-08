@@ -27,12 +27,10 @@ const skinAnalysisSchema = z.object({
   recommendedProductIds: z.array(z.number()).min(0).max(6),
 })
 
-// Minimal product info for AI (no image_url, timestamps)
+// Minimal product info for AI
 type MinimalProduct = {
   id: number
   name: string
-  brand: string
-  type: string
   description: string | null
 }
 
@@ -40,8 +38,6 @@ function getMinimalProducts(products: Product[]): MinimalProduct[] {
   return products.map(p => ({
     id: p.id,
     name: p.name,
-    brand: p.brand,
-    type: p.type,
     description: p.description,
   }))
 }
@@ -62,7 +58,7 @@ export async function POST(req: Request) {
       surveyKeys: surveyAnswers ? Object.keys(surveyAnswers) : [],
     })
 
-    // Fetch all products from DB
+    // Fetch all products
     let allProducts: Product[] = []
     try {
       allProducts = await productDb.getAll()
@@ -165,9 +161,6 @@ For recommendedProductIds: Select up to 6 product IDs from our database that wou
       console.error(`[${requestId}] AI call failed, using fallback`, {
         model: SKIN_ANALYSIS_MODEL,
         message: err.message,
-        name: err.name,
-        stack: err.stack,
-        cause: err.cause,
       })
       return Response.json(getFallbackAnalysis(surveyAnswers || {}, allProducts))
     }
@@ -187,16 +180,7 @@ For recommendedProductIds: Select up to 6 product IDs from our database that wou
       recommendedProducts,
     })
   } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Unknown error"
-    const errorName = err instanceof Error ? err.name : "UnknownError"
-    const errorStack = err instanceof Error ? err.stack : undefined
-    const errorCause = err instanceof Error ? err.cause : undefined
-    console.error(`[${requestId}] Skin analysis route error, using fallback`, {
-      message: errorMessage,
-      name: errorName,
-      stack: errorStack,
-      cause: errorCause,
-    })
+    console.error(`[${requestId}] Skin analysis route error, using fallback`)
     
     // Try to extract survey answers for fallback
     let allProducts: Product[] = []
@@ -288,9 +272,9 @@ function getFallbackAnalysis(surveyAnswers: Record<string, string>, products: Pr
     Normal: { hydration: 75, oiliness: 50, texture: 80, clarity: 80, elasticity: 78 },
   }
 
-  // Fallback: pick random products based on skin type keywords
+  // Fallback: pick products based on name keywords
   const typeKeywords: Record<string, string[]> = {
-    Oily: ["Cleanser", "Toner", "Serum"],
+    Oily: ["Cleanser", "Tonic", "Serum"],
     Dry: ["Moisturizer", "Cream", "Oil", "Serum"],
     Combination: ["Cleanser", "Moisturizer", "Serum"],
     Sensitive: ["Cream", "Serum", "Moisturizer"],
@@ -300,8 +284,8 @@ function getFallbackAnalysis(surveyAnswers: Record<string, string>, products: Pr
   const keywords = typeKeywords[skinType] || typeKeywords.Normal
   const recommendedProducts = products
     .filter(p => keywords.some(k => 
-      p.type.toLowerCase().includes(k.toLowerCase()) || 
-      p.name.toLowerCase().includes(k.toLowerCase())
+      p.name.toLowerCase().includes(k.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(k.toLowerCase()))
     ))
     .slice(0, 4)
 

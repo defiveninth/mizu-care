@@ -1,7 +1,5 @@
-import { neon } from "@neondatabase/serverless"
 import { NextResponse } from "next/server"
-
-const sql = neon(process.env.DATABASE_URL!)
+import { reviewDb } from "@/lib/db"
 
 export async function DELETE(
   _request: Request,
@@ -15,31 +13,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid review id" }, { status: 400 })
     }
 
-    const existing = await sql`
-      SELECT id, rating
-      FROM reviews
-      WHERE id = ${reviewId}
-      LIMIT 1
-    ` as { id: number; rating: number }[]
+    const deleted = await reviewDb.delete(reviewId)
 
-    if (existing.length === 0) {
+    if (!deleted) {
       return NextResponse.json({ error: "Review not found" }, { status: 404 })
     }
-
-    const rating = existing[0].rating
-
-    await sql`
-      DELETE FROM reviews
-      WHERE id = ${reviewId}
-    `
-
-    await sql`
-      UPDATE scan_stats
-      SET total_ratings = GREATEST(total_ratings - 1, 0),
-          ratings_sum = GREATEST(ratings_sum - ${rating}, 0),
-          updated_at = NOW()
-      WHERE id = 1
-    `
 
     return NextResponse.json({ success: true })
   } catch (error) {

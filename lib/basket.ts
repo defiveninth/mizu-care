@@ -2,8 +2,6 @@ export interface BasketItem {
   id: number
   name: string
   price: number
-  brand: string
-  type: string
   image_url: string | null
 }
 

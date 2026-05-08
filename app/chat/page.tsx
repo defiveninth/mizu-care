@@ -13,9 +13,10 @@ interface Product {
   id: number
   name: string
   price: number
-  description?: string
-  image?: string
-  category?: string
+  description: string | null
+  image_url: string | null
+  link: string | null
+  sostav: string[]
 }
 
 interface Message {
@@ -34,12 +35,12 @@ If user asks general questions not related to products, just answer normally wit
 
 function ChatProductCard({ product }: { product: Product }) {
   return (
-    <Link href={`/products/${product.id}`} target="_blank" className="block group">
+    <Link href={product.link || `/products/${product.id}`} target="_blank" className="block group">
       <Card className="overflow-hidden border-border/50 hover:border-primary/30 hover:shadow-card transition-all duration-300 h-full">
         <div className="relative h-32 bg-muted/30 flex items-center justify-center overflow-hidden">
-          {product.image ? (
+          {product.image_url ? (
             <Image 
-              src={product.image} 
+              src={product.image_url} 
               alt={product.name}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -49,7 +50,6 @@ function ChatProductCard({ product }: { product: Product }) {
           )}
         </div>
         <CardContent className="p-3">
-          <p className="text-[10px] uppercase tracking-wider text-primary font-bold mb-0.5">{product.category}</p>
           <h4 className="text-xs font-semibold text-foreground line-clamp-1 mb-1 group-hover:text-primary transition-colors">
             {product.name}
           </h4>
@@ -105,7 +105,6 @@ function AiChatPage() {
         return products.filter(
           (p) =>
             p.name?.toLowerCase().includes(lower) ||
-            (p.category && p.category.toLowerCase().includes(lower)) ||
             (p.description && p.description.toLowerCase().includes(lower))
         );
       })
@@ -125,7 +124,7 @@ function AiChatPage() {
     const productContext =
       products.length > 0
         ? `\n\nAvailable products:\n${products
-            .map((p) => `- ${p.name} (id:${p.id}, ₸${p.price}${p.category ? ", " + p.category : ""})`)
+            .map((p) => `- ${p.name} (id:${p.id}, ₸${p.price})`)
             .join("\n")}`
         : "";
 
@@ -157,8 +156,7 @@ function AiChatPage() {
         const lower = text.toLowerCase();
         const keywordMatched = products.filter(
           (p) =>
-            lower.includes(p.name?.toLowerCase()) ||
-            (p.category && lower.includes(p.category.toLowerCase()))
+            lower.includes(p.name?.toLowerCase())
         ).slice(0, 4);
         if (keywordMatched.length) matchedProducts = keywordMatched;
       }

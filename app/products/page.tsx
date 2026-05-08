@@ -4,20 +4,12 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { ProductCard } from "@/components/product-card"
 import { HistoryButton } from "@/components/history-button"
 import { addToBasket, readBasket } from "@/lib/basket"
 import { useI18n } from "@/lib/i18n"
 import { motion } from "framer-motion"
-import { ArrowLeft, Filter, Lightbulb, Package, Search, ShoppingBag, X } from "lucide-react"
+import { ArrowLeft, Package, Search, ShoppingBag, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
@@ -27,11 +19,10 @@ interface Product {
   id: number
   name: string
   description: string | null
-  usage_tip: string | null
   price: number
-  brand: string
-  type: string
   image_url: string | null
+  link: string | null
+  sostav: string[]
   created_at: string
   updated_at: string
 }
@@ -47,29 +38,12 @@ const fadeUp = {
   }),
 }
 
-const typeColors: Record<string, string> = {
-  "Spray": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  "Cream": "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-  "Serum": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  "Cleanser": "bg-green-500/10 text-green-600 dark:text-green-400",
-  "Toner": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  "Moisturizer": "bg-teal-500/10 text-teal-600 dark:text-teal-400",
-  "Mask": "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-  "Oil": "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  "Sunscreen": "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-  "Exfoliant": "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-}
-
 export default function ProductsPage() {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedBrand, setSelectedBrand] = useState<string>("")
-  const [selectedType, setSelectedType] = useState<string>("")
   const [basketIds, setBasketIds] = useState<Set<number>>(() => new Set())
   
-  const { data: products, isLoading } = useSWR<Product[]>(`/api/products?locale=${locale}`, fetcher)
-  const { data: brands } = useSWR<string[]>('/api/products/brands', fetcher)
-  const { data: types } = useSWR<string[]>(`/api/products/types?locale=${locale}`, fetcher)
+  const { data: products, isLoading } = useSWR<Product[]>(`/api/products`, fetcher)
 
   useEffect(() => {
     const refresh = () => {
@@ -91,20 +65,16 @@ export default function ProductsPage() {
     return products.filter(product => {
       const matchesSearch = searchQuery === "" || 
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchQuery.toLowerCase())
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase())
       
-      const matchesBrand = selectedBrand === "" || product.brand === selectedBrand
-      const matchesType = selectedType === "" || product.type === selectedType
-      
-      return matchesSearch && matchesBrand && matchesType
+      return matchesSearch
     })
-  }, [products, searchQuery, selectedBrand, selectedType])
+  }, [products, searchQuery])
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, selectedBrand, selectedType])
+  }, [searchQuery])
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
   const paginatedProducts = useMemo(() => {
@@ -114,11 +84,9 @@ export default function ProductsPage() {
 
   const clearFilters = () => {
     setSearchQuery("")
-    setSelectedBrand("")
-    setSelectedType("")
   }
 
-  const hasActiveFilters = searchQuery || selectedBrand || selectedType
+  const hasActiveFilters = searchQuery
 
   return (
     <div className="min-h-screen bg-background">
@@ -177,38 +145,15 @@ export default function ProductsPage() {
             )}
           </div>
 
-          {/* Filter Row */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Filter className="h-4 w-4" />
-              <span>{t('products.filters')}</span>
-            </div>
-            
-            <Select value={selectedBrand || "all"} onValueChange={(val) => setSelectedBrand(val === "all" ? "" : val)}>
-              <SelectTrigger className="w-[160px] rounded-full">
-                <SelectValue placeholder={t('products.allBrands')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('products.allBrands')}</SelectItem>
-                {brands?.map(brand => (
-                  <SelectItem key={brand} value={brand}>{brand}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={selectedType || "all"} onValueChange={(val) => setSelectedType(val === "all" ? "" : val)}>
-              <SelectTrigger className="w-[160px] rounded-full">
-                <SelectValue placeholder={t('products.allTypes')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('products.allTypes')}</SelectItem>
-                {types?.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {hasActiveFilters && (
+          {/* Active Filter Tags */}
+          {hasActiveFilters && (
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary" className="rounded-full px-3 py-1">
+                {t('products.searchLabel')} &quot;{searchQuery}&quot;
+                <button onClick={() => setSearchQuery("")} className="ml-2 hover:text-foreground">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
               <Button
                 variant="ghost"
                 size="sm"
@@ -218,36 +163,6 @@ export default function ProductsPage() {
                 <X className="h-4 w-4 mr-1" />
                 {t('products.clearAll')}
               </Button>
-            )}
-          </div>
-
-          {/* Active Filter Tags */}
-          {hasActiveFilters && (
-            <div className="flex flex-wrap gap-2">
-              {searchQuery && (
-                <Badge variant="secondary" className="rounded-full px-3 py-1">
-                  {t('products.searchLabel')} &quot;{searchQuery}&quot;
-                  <button onClick={() => setSearchQuery("")} className="ml-2 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedBrand && (
-                <Badge variant="secondary" className="rounded-full px-3 py-1">
-                  {t('products.brandLabel')} {selectedBrand}
-                  <button onClick={() => setSelectedBrand("")} className="ml-2 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedType && (
-                <Badge variant="secondary" className="rounded-full px-3 py-1">
-                  {t('products.typeLabel')} {selectedType}
-                  <button onClick={() => setSelectedType("")} className="ml-2 hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
             </div>
           )}
         </div>
@@ -277,17 +192,15 @@ export default function ProductsPage() {
               {paginatedProducts.map((product, i) => (
                 <motion.div key={product.id} custom={i} variants={fadeUp}>
                   <ProductCard
-                    product={product}
+                    product={product as any}
                     isAdded={basketIds.has(product.id)}
                     onAdd={() => {
                       const next = addToBasket({
                         id: product.id,
                         name: product.name,
                         price: Number(product.price),
-                        brand: product.brand,
-                        type: product.type,
                         image_url: product.image_url,
-                      })
+                      } as any)
                       setBasketIds(new Set(next.map((item) => item.id)))
                     }}
                   />

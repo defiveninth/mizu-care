@@ -32,15 +32,6 @@ interface ResultsScreenProps {
   onViewHistory?: () => void
 }
 
-// Format price from "10990.00" to "10 990 ₸"
-function formatPrice(price: string): string {
-  const num = parseFloat(price)
-  if (isNaN(num)) return price
-  // Format with space as thousands separator and tenge symbol
-  const formatted = Math.round(num).toLocaleString('ru-KZ').replace(/,/g, ' ')
-  return `${formatted} ₸`
-}
-
 export default function ResultsScreen({ skinData, onRestart, onGoHome, onViewHistory }: ResultsScreenProps) {
   const { t } = useI18n()
   const { skinType, concerns, recommendations, analysis, detailedNotes, recommendedProducts } = skinData
@@ -346,9 +337,16 @@ function MetricBar({
   )
 }
 
+function formatPrice(price: number | string): string {
+  const num = typeof price === 'number' ? price : parseFloat(price)
+  if (isNaN(num)) return String(price)
+  const formatted = Math.round(num).toLocaleString('ru-KZ').replace(/,/g, ' ')
+  return `${formatted} ₸`
+}
+
 function ProductCard({ product }: { product: RecommendedProduct }) {
   return (
-    <Link href={`/products/${product.id}`}>
+    <Link href={product.link || `/products/${product.id}`} target={product.link ? "_blank" : undefined}>
       <Card className="min-w-[190px] max-w-[190px] shrink-0 overflow-hidden rounded-xl border-border/50 hover:shadow-md transition-shadow cursor-pointer">
         <div className="relative h-32 w-full overflow-hidden bg-linear-to-br from-muted to-muted/50">
           {product.image_url ? (
@@ -364,14 +362,8 @@ function ProductCard({ product }: { product: RecommendedProduct }) {
               <ShoppingBag className="h-10 w-10 text-muted-foreground/50" />
             </div>
           )}
-          <div className="absolute left-2 top-2">
-            <span className="rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm">
-              {product.type}
-            </span>
-          </div>
         </div>
         <div className="p-3">
-          <p className="text-xs text-muted-foreground">{product.brand}</p>
           <p className="mt-0.5 min-h-10 line-clamp-2 text-sm font-medium text-foreground">
             {product.name}
           </p>
