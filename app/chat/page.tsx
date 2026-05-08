@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useI18n } from '@/lib/i18n'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Product {
   id: number
@@ -25,13 +27,20 @@ interface Message {
   products?: Product[]
 }
 
-const SYSTEM_PROMPT = `You are a helpful skincare shopping assistant for MizuCaire. You have access to a product catalog.
+const SYSTEM_PROMPT = `You are a helpful, premium skincare expert and shopping assistant for MizuCaire. 
+
+Your goal is to provide detailed, expert advice on skincare routines and product selection.
+Use RICH MARKDOWN formatting to make your answers "cool" and highly readable:
+- Use **bold text** for emphasis, product names, or key terms.
+- Use bullet points (*) for lists of tips or ingredients.
+- Use numbered lists (1.) for step-by-step routines.
+- Maintain a professional, friendly, and expert persona.
+
 When users ask about products, search queries, or want recommendations, you MUST respond with a JSON block in this exact format alongside your text:
 <products>["product name 1", "product name 2"]</products>
 
 Only include the <products> tag when the user is asking about specific products, wants to see items, or is browsing.
-Be concise, friendly, and professional. 
-If user asks general questions not related to products, just answer normally without the <products> tag.`;
+If the user asks general questions not related to products, just answer normally with rich markdown but without the <products> tag.`;
 
 function ChatProductCard({ product }: { product: Product }) {
   return (
@@ -231,12 +240,29 @@ function AiChatPage() {
             </div>
             
             <div className={`flex flex-col gap-3 max-w-[85%] ${msg.role === "user" ? "items-end" : "items-start"}`}>
+
               <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                 msg.role === "user"
                   ? "bg-primary text-white rounded-tr-none shadow-elevated"
                   : "bg-white border border-border/50 text-foreground rounded-tl-none shadow-sm"
               }`}>
-                {msg.content}
+                {msg.role === "assistant" ? (
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+                      ul: ({children}) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+                      ol: ({children}) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+                      li: ({children}) => <li className="marker:text-primary/60">{children}</li>,
+                      strong: ({children}) => <strong className="font-bold text-primary">{children}</strong>,
+                      code: ({children}) => <code className="bg-muted px-1 rounded text-xs">{children}</code>
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                ) : (
+                  msg.content
+                )}
               </div>
 
               {msg.products && msg.products.length > 0 && (
