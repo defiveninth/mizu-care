@@ -92,39 +92,32 @@ export async function POST(req: Request) {
 ${JSON.stringify(minimalProducts, null, 0)}`
       : ""
 
-    const prompt = `You are an expert dermatologist AI. Analyze this facial skin image and provide a detailed skin analysis.
-Use a direct, tough-love tone. Do not sugarcoat obvious skin issues. Be honest, slightly exaggerated for motivation, but never insulting.
+    const prompt = `You are an elite, world-class dermatologist AI specializing in visual skin diagnostics.
+Your analysis must be SURGICAL, HONEST, and OBSERVATIONAL.
+
+Look at the image with extreme detail. In your 'concerns' and 'detailedNotes', you MUST reference specific visual evidence from the photo to prove you are analyzing it.
+Reference specific areas (e.g., "forehead", "chin", "cheeks", "T-zone") in your findings.
+
+Tone: Tough-love, clinical, and highly motivating. Do not be generic.
+
 The user interface language is ${userLocale}. You MUST write all client-facing text fields in ${responseLanguage}.
 Apply this language rule to: concerns, recommendations, and detailedNotes.
-Do not translate skinType values; keep skinType strictly one of: Oily, Dry, Combination, Sensitive, Normal.
 
-Survey answers from the user:
-- Oiliness level: ${surveyAnswers?.oiliness || "not specified"}
-- Sensitivity level: ${surveyAnswers?.sensitivity || "not specified"}  
-- Hydration level: ${surveyAnswers?.hydration || "not specified"}
+Survey context:
+- Oiliness: ${surveyAnswers?.oiliness || "not specified"}
+- Sensitivity: ${surveyAnswers?.sensitivity || "not specified"}  
+- Hydration: ${surveyAnswers?.hydration || "not specified"}
 - Concerns: ${surveyAnswers?.concerns || "none specified"}
-- Current routine: ${surveyAnswers?.routine || "not specified"}
 
-Based on the image analysis AND the survey answers, provide a comprehensive skin assessment.
+Your Task:
+1. Determine skinType (Oily, Dry, Combination, Sensitive, Normal) by balancing visual signs with survey data.
+2. Identify 3-5 'concerns'. At least 2 MUST be based on direct visual observation from the photo (e.g., "Observed pore congestion in T-zone").
+3. Provide 3-5 'recommendations' that are medically sound and prioritize fixing the most visible issues first.
+4. Set 'analysis' scores (0-100) based strictly on your visual assessment.
+5. In 'detailedNotes', provide a 2-3 sentence "Doctor's Verdict". Be frank. If they are neglecting their skin, tell them. Reference a specific visual part of the face you analyzed.
 
-For skinType: Choose from Oily, Dry, Combination, Sensitive, or Normal based on what you observe.
-
-For concerns: Be specific based on what you see (e.g., "Visible pores on T-zone", "Mild dehydration lines", "Uneven skin tone", "Light acne scarring"). 
-Use stronger language when issues are visible (for example "noticeable dehydration", "clearly congested pores", "dull and tired skin"). List 1-5 concerns.
-
-For recommendations: Provide 3-5 actionable skincare advice tailored to the observed conditions. Keep recommendations practical and urgent in tone.
-
-For analysis scores (0-100): Rate each metric based on what you observe:
-- hydration: How well-hydrated the skin appears
-- oiliness: Amount of visible oil/sebum
-- texture: Smoothness and evenness of skin texture
-- clarity: Clearness and absence of blemishes
-- elasticity: Skin firmness and youthful appearance
-
-For detailedNotes: A brief 1-2 sentence summary of the skin condition observed.
-The note should sound frank and corrective, like a dermatologist giving a reality check.
-
-For recommendedProductIds: Select up to 6 product IDs from our database that would be most beneficial for this skin type and concerns. Choose products that address the specific issues you identified.${productListForAI}`
+Product Matching:
+Select up to 6 product IDs from our database that would be most beneficial for the VISUAL issues you identified. ${productListForAI}`
 
     let output: z.infer<typeof skinAnalysisSchema> | undefined
     try {

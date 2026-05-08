@@ -29,7 +29,7 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
   const [faceStatus, setFaceStatus] = useState<FaceDetectionResult>({
     detected: false,
     centered: false,
-    message: "Position your face in the oval"
+    message: "Bring your face closer to the camera"
   })
   const animationFrameRef = useRef<number | null>(null)
 
@@ -100,8 +100,8 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
     // Define the oval region (center of frame)
     const centerX = canvas.width / 2
     const centerY = canvas.height / 2
-    const ovalWidth = canvas.width * 0.35
-    const ovalHeight = canvas.height * 0.55
+    const ovalWidth = canvas.width * 0.45
+    const ovalHeight = canvas.height * 0.65
 
     // Sample pixels in the oval region
     const imageData = ctx.getImageData(
@@ -126,7 +126,6 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
       avgBrightness += (r + g + b) / 3
 
       // Skin tone detection using RGB rules
-      // Works for various skin tones
       if (
         r > 60 && g > 40 && b > 20 &&
         r > g && r > b &&
@@ -150,18 +149,18 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
       message = "Too dark - move to better lighting"
     } else if (avgBrightness > 240) {
       message = "Too bright - avoid direct light"
-    } else if (skinRatio < 0.15) {
-      message = "Position your face in the oval"
-    } else if (skinRatio < 0.25) {
+    } else if (skinRatio < 0.20) {
+      message = "Bring your face closer to the camera"
+    } else if (skinRatio < 0.35) {
       detected = true
-      message = "Move closer to the camera"
-    } else if (skinRatio > 0.7) {
+      message = "Move even closer"
+    } else if (skinRatio > 0.85) {
       detected = true
-      message = "Move back a little"
+      message = "Move back slightly"
     } else {
       detected = true
       centered = true
-      message = "Perfect! Hold still and capture"
+      message = "Perfect distance! Capture now"
     }
 
     setFaceStatus({ detected, centered, message })
@@ -315,7 +314,7 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
 
             {!capturedImage && !isLoading && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="relative h-72 w-56">
+                <div className="relative h-80 w-64">
                   <svg
                     viewBox="0 0 200 260"
                     className="h-full w-full"
@@ -324,8 +323,8 @@ export default function CameraCapture({ onCapture, onBack }: CameraCaptureProps)
                     <ellipse
                       cx="100"
                       cy="130"
-                      rx="80"
-                      ry="110"
+                      rx="90"
+                      ry="120"
                       stroke={getOvalColor()}
                       strokeWidth="3"
                       strokeDasharray={faceStatus.centered ? "0" : "10 5"}
